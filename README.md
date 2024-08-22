@@ -1,7 +1,7 @@
 # How to run:
 
 ## Backend:
-backend>pip install -re requirements.txt </br>
+backend>pip install -r requirements.txt </br>
 ... </br>
 backend>uvicorn main:app </br>
 </br>
