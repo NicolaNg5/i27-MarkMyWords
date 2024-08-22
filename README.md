@@ -1,10 +1,10 @@
-#How to run:
+# How to run:
 
-##Backend:
+## Backend:
 backend>pip install -re requirements.txt
 ...
 backend>uvicorn main:app
 
-##Frontend:
+## Frontend:
 frontend>npm install
 frontend>npm run dev
