@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Request
+from decouple import config
+from supabase import create_client, Client
+from uuid import UUID
 from google.generativeai import GenerativeModel
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
@@ -6,6 +9,13 @@ import json
 
 app = FastAPI()
 
+#Supabase Credentials:
+url = config("SUPABASE_URL")
+key = config("SUPABASE_KEY")
+
+supabase: Client = create_client(url,key)
+
+#AI GEMINI Credentials:
 API_KEY = "AIzaSyDlIgvojKuLfMr9LB1NBV2TSrJhKiX5Y6Q" 
 MODEL_NAME = "gemini-1.5-pro"
 
@@ -40,6 +50,8 @@ try:
 except FileNotFoundError:
     responses = []
 
+
+#AI API endpoints
 @app.get("/prompts")
 def get_prompts():
     return {"prompts": [prompt["name"] for prompt in PROMPTS.values()]}
@@ -74,3 +86,127 @@ async def generate_response(request: Request):
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
+    
+#--------------------------------------------------------------------------------------#
+
+#Supabase endpoints:
+
+#Get all students
+@app.get("/students")
+def get_students():
+    students = supabase.table("student").select("*").execute()
+    return students
+
+#Get specific student based on UUID
+@app.get("/student/{id}")
+def get_student(id:UUID):
+    student = supabase.table("student").select("*").eq("Studentid",id).execute()
+    return student
+
+#Get all classes
+@app.get("/classes")
+def get_classes():
+    classes = supabase.table("Class").select("*").execute()
+    return classes
+
+#Get specifc class based on UUID
+@app.get("/class/{id}")
+def get_class(id:UUID):
+    specificClass = supabase.table("Class").select("*").eq("ClassNumber",id).execute()
+    return specificClass
+
+#Get all reading material
+@app.get("/readingmaterials")
+def get_reading_materials():
+    reading_materials = supabase.table("ReadingMaterial").select("*").execute()
+    return reading_materials
+
+#Get specfic reading material based on UUID
+@app.get("/readingmaterial/{id}")
+def get_reading_material(id:UUID):
+    reading_material = supabase.table("ReadingMaterial").select("*").eq("MaterialId",id).execute()
+    return reading_material
+
+#Get all assessments
+@app.get("/assessments")
+def get_assessments():
+    assessments = supabase.table("Assessment").select("*").execute()
+    return assessments
+
+#Get specific assessment based on UUID
+@app.get("/assessment/{id}")
+def get_assessment(id:UUID):
+    assessment = supabase.table("Assessment").select("*").eq("Assessmentid",id).execute()
+    return assessment
+
+#Get all questions
+@app.get("/questions")
+def get_questions():
+    questions = supabase.table("Question").select("*").execute()
+    return questions
+
+#Get specific question based on UUID
+@app.get("/question/{id}")
+def get_question(id:UUID):
+    question = supabase.table("Question").select("*").eq("QuestionID",id).execute()
+    return question
+
+#Get all skills
+@app.get("/skills")
+def get_skills():
+    skills = supabase.table("skill").select("*").execute()
+    return skills
+
+#Get specific skill:
+@app.get("/skill/{id}")
+def get_skill(id:UUID):
+    skill = supabase.table("skill").select("*").eq("skillid",id).execute()
+    return skill
+
+#Get all question skill:
+@app.get("/questionskills")
+def get_qnsk():
+    qnsk = supabase.table("QuestionSkill").select("*").execute()
+    return qnsk
+
+#Get specific question skill:
+@app.get("/questionskill/{id}")
+def get_qnsk(id:UUID):
+    qnsk = supabase.table("QuestionSkill").select("*").eq("QuestionID",id).execute()
+    return qnsk
+
+#Get all answers
+@app.get("/answers")
+def get_answers():
+    answers = supabase.table("Answer").select("*").execute()
+    return answers
+
+#Get answer based on answer id
+@app.get("/answerid/{answerid}")
+def get_answer_answerid(answerid:UUID):
+    answer = supabase.table("Answer").select("*").eq("AnswerID",answerid).execute()
+    return answer
+
+#Get answer based on question id
+@app.get("/answerquesid/{questionid}")
+def get_answer_questionid(questionid:UUID):
+    answer = supabase.table("Answer").select("*").eq("QuestionID",questionid).execute()
+    return answer
+
+#Get all results
+@app.get("/results")
+def get_results():
+    results = supabase.table("Results").select("*").execute()
+    return results
+
+#Get result based on result id
+@app.get("/resultid/{id}")
+def get_result_resultid(id:UUID):
+    result = supabase.table("Results").select("*").eq("ResultID",id).execute()
+    return result
+
+#Get result based on student id
+@app.get("/resultstudentid/{id}")
+def get_result_studentid(id:UUID):
+    result = supabase.table("Results").select("*").eq("StudentID",id).execute()
+    return result
