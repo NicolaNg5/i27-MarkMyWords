@@ -1,7 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status, HTTPException
 from decouple import config
 from supabase import create_client, Client
+from postgrest import APIError
+import uuid
 from uuid import UUID
+from pydantic import BaseModel, EmailStr
 from google.generativeai import GenerativeModel
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
@@ -210,3 +213,41 @@ def get_result_resultid(id:UUID):
 def get_result_studentid(id:UUID):
     result = supabase.table("Results").select("*").eq("StudentID",id).execute()
     return result
+
+#Create student
+class StudentSchema(BaseModel):
+    name: str
+    email: EmailStr
+    class_id: str
+
+@app.post("/student/", status_code=status.HTTP_201_CREATED)
+def create_student(student:StudentSchema):
+    #UUID for student id
+    student_id = str(uuid.uuid4())
+    
+    #prepare data
+    new_student = {
+        "Studentid": student_id,
+        "name": student.name,
+        "email": student.email,
+        "class": student.class_id
+    }
+    
+    try:
+        #insert new student into supa
+        result = supabase.table("student").insert(new_student).execute()
+        
+        #check insertion
+        if result.data:
+            return {"message": "Student created successfully", "student": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create student")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                                detail=f"Class with ID {student.class_id} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    

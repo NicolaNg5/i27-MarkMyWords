@@ -4,3 +4,5 @@ python-multipart
 google-generativeai
 supabase
 python-decouple
+pydantic[email]
+pydantic

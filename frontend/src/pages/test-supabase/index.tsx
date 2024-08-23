@@ -66,6 +66,7 @@ export default function TestSupabase() {
         <div className={styles.error}>{error}</div>
       ) : (
         <>
+          <AddStudentForm setStudents={setStudents} setError={setError} />
           <StudentsTable students={students} />
           <SelectedStudent
             students={students}
@@ -219,5 +220,65 @@ function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
         </div>
       )}
     </>
+  );
+}
+
+function AddStudentForm({ setStudents, setError }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [classId, setClassId] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/studentpost", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, class_id: classId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Update the students list
+        setStudents((prevStudents) => [...prevStudents, data.student]);
+        // Clear the form
+        setName("");
+        setEmail("");
+        setClassId("");
+      } else {
+        setError(data.detail || "Failed to add student");
+      }
+    } catch (error) {
+      setError("An error occurred while adding the student");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="">
+      <h2>Add New Student</h2>
+      <input
+        value={name}
+        type="text"
+        placeholder="Name"
+        required
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        required
+      />
+      <input
+        type="text"
+        value={classId}
+        onChange={(e) => setClassId(e.target.value)}
+        placeholder="Class ID"
+        required
+      />
+      <button type="submit">Add Student</button>
+    </form>
   );
 }
