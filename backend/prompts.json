@@ -1,18 +1,10 @@
 {
     "prompt1": {
-      "name": "Sherlock Homes",
-      "content": "Tell me about Sherlock Homes"
+      "name": "Analyse Reading Material",
+      "content": "Analyse this reading material and provide some key points."
     },
     "prompt2": {
-      "name": "Romeo and Juliet",
-      "content": "How did Romeo and Juliet meet each other"
-    },
-    "prompt3": {
-      "name": "The Great Gatsby",
-      "content": "What do you think about this quote from The Great Gatsby 'There are only the pursued, the pursuing, the busy and the tired.'"
-    },
-    "prompt4": {
-      "name": "The Lion King",
-      "content": "Give me 10 quiz questions about 'The Lion King'."
+      "name": "Create a Quiz",
+      "content": "Create a 10 questions quiz from this reading material."
     }
 }

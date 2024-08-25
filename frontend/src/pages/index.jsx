@@ -1,29 +1,30 @@
 "use client";
-import { useState, useEffect } from 'react';
-
-function formatResponse(text) {
-  if (!text) {
-    return '';
-  }
-  
-  return text.replace(/\n/g, '<br>');
-}
-
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [prompts, setPrompts] = useState([]);
   const [selectedPrompt, setSelectedPrompt] = useState("");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileContent, setFileContent] = useState("");
+
+  function formatResponse(text) {
+    if (!text) {
+      return '';
+    }
+    
+    return text.replace(/\n/g, '<br>');
+  }
 
   useEffect(() => {
     const fetchPrompts = async () => {
       try {
-        const res = await fetch('/api/prompts');
+        const res = await fetch("/api/prompts");
         const data = await res.json();
         setPrompts(data.prompts);
       } catch (error) {
-        setError('Error fetching prompts');
+        setError("Error fetching prompts");
       }
     };
     fetchPrompts();
@@ -33,31 +34,73 @@ export default function Home() {
     setSelectedPrompt(event.target.value);
   };
 
-  const handleSubmit = async () => {
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFileContent(e.target.result);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleUpload = async () => {
     setError(null);
+    if (!selectedFile) {
+      setError("Please select a file.");
+      return;
+    }
+
+    try {
+      console.log("File Content Before Sending:", fileContent); 
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+        body: fileContent, 
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error uploading file: ${res.status} ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      console.log("Frontend - File Uploaded:", data); 
+
+    } catch (error) {
+      console.error("Frontend - Error:", error);
+      setError("Error analyzing file");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!selectedPrompt) {
+      setError("Please select a prompt.");
+      return;
+    }
+
     try {
       console.log("Frontend - Sending Prompt Key:", selectedPrompt);
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain; charset=UTF-8' },
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
         body: selectedPrompt,
       });
 
       const data = await res.json();
       console.log("Frontend - Received Data:", data);
-
       setResponse(data);
     } catch (error) {
       console.error("Frontend - Error:", error);
-      setError('Error generating response');
+      setError("Error generating response");
     }
   };
-
-  useEffect(() => {
-    if (response) {
-      console.log("Response state updated:", response);
-    }
-  }, [response]);
 
   return (
     <div>
@@ -70,12 +113,15 @@ export default function Home() {
           </option>
         ))}
       </select>
-      <button onClick={handleSubmit}>
-        Generate
-      </button>
+      <br />
+      <input type="file" onChange={handleFileChange} />
+      <br />
+      <button onClick={handleUpload}>Upload File</button> 
+      <br/>
+      <button onClick={handleSubmit}>Generate Response</button>
 
       {error ? (
-        <div>{error}</div> 
+        <div>{error}</div>
       ) : response ? (
         <div>
           <h2>Response:</h2>

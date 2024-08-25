@@ -3,7 +3,6 @@ export default async function handler(req, res) {
     try {
       const response = await fetch('http://localhost:8000/generate', { 
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: req.body 
       });
       const data = await response.json();
