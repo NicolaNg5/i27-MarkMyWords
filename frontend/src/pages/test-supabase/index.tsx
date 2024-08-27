@@ -1,17 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "../../components/Navbar";
 import styles from "./testsupabase.module.css";
+import Layout from "@/components/layout";
 
 export default function TestSupabase() {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState([]);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   //handle function:
-  const fetchSelectedStudent = async (studentId) => {
+  const fetchSelectedStudent = async (studentId: any) => {
     try {
       const res = await fetch(`/api/student/${studentId}`);
       const data = await res.json();
@@ -23,7 +23,7 @@ export default function TestSupabase() {
     }
   };
 
-  const fetchSelectedAnswer = async (quesId) => {
+  const fetchSelectedAnswer = async (quesId: any) => {
     try {
       const res = await fetch(`/api/answer/${quesId}`);
       const data = await res.json();
@@ -59,33 +59,34 @@ export default function TestSupabase() {
   }, []);
 
   return (
-    <div>
-      <Navbar />
-      <h1>Testing the retrieval of supabase tables</h1>
-      {error ? (
-        <div className={styles.error}>{error}</div>
-      ) : (
-        <>
-          <AddStudentForm setStudents={setStudents} setError={setError} />
-          <StudentsTable students={students} />
-          <SelectedStudent
-            students={students}
-            onSelectStudent={fetchSelectedStudent}
-            selectedStudent={selectedStudent}
-          />
-          <AnswerTable answers={answers} />
-          <SelectedAnswer
-            answers={answers}
-            onSelectAnswer={fetchSelectedAnswer}
-            selectedAnswer={selectedAnswer}
-          />
-        </>
-      )}
-    </div>
+    <Layout>
+      <div>
+        <h1>Testing the retrieval of supabase tables</h1>
+        {error ? (
+          <div className={styles.error}>{error}</div>
+        ) : (
+          <>
+            <AddStudentForm setStudents={setStudents} setError={setError} />
+            <StudentsTable students={students} />
+            <SelectedStudent
+              students={students}
+              onSelectStudent={fetchSelectedStudent}
+              selectedStudent={selectedStudent}
+            />
+            <AnswerTable answers={answers} />
+            <SelectedAnswer
+              answers={answers}
+              onSelectAnswer={fetchSelectedAnswer}
+              selectedAnswer={selectedAnswer}
+            />
+          </>
+        )}
+      </div>
+    </Layout>
   );
 }
 
-function StudentsTable({ students }) {
+function StudentsTable( students: any ) {
   if (!students.length) return <p>No students found.</p>;
   return (
     <>
@@ -100,7 +101,7 @@ function StudentsTable({ students }) {
           </tr>
         </thead>
         <tbody>
-          {students.map((stu) => (
+          {students.map((stu: any) => (
             <tr key={stu.Studentid}>
               <td>{stu.Studentid}</td>
               <td>{stu.name}</td>
@@ -116,7 +117,7 @@ function StudentsTable({ students }) {
 
 function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
   //func called onselect to set selected student oonly if student.id is set
-  const handleSelectChange = (e) => {
+  const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     if (selectedId) {
       onSelectStudent(selectedId);
@@ -132,7 +133,7 @@ function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
         onChange={handleSelectChange}
       >
         <option value="">Select a student</option>
-        {students.map((student) => (
+        {students.map((student: any) => (
           <option key={student.Studentid} value={student.Studentid}>
             {student.name}
           </option>
@@ -173,7 +174,7 @@ function AnswerTable({ answers }) {
           </tr>
         </thead>
         <tbody>
-          {answers.map((ans) => (
+          {answers.map((ans: any) => (
             <tr key={ans.Studentid}>
               <td>{ans.AnswerID}</td>
               <td>{ans.QuestionID}</td>
@@ -187,7 +188,7 @@ function AnswerTable({ answers }) {
 }
 
 function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
-  const handleSelectChange = (e) => {
+  const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     if (selectedId) {
       onSelectAnswer(selectedId);
@@ -205,7 +206,7 @@ function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
         <option value="">
           Select a question you would like to see the answer
         </option>
-        {answers.map((ans) => (
+        {answers.map((ans: any) => (
           <option key={ans.QuestionID} value={ans.QuestionID}>
             Question id: {ans.QuestionID}
           </option>
@@ -228,7 +229,7 @@ function AddStudentForm({ setStudents, setError }) {
   const [email, setEmail] = useState("");
   const [classId, setClassId] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
       const res = await fetch("/api/studentpost", {
@@ -241,7 +242,7 @@ function AddStudentForm({ setStudents, setError }) {
       const data = await res.json();
       if (res.ok) {
         // Update the students list
-        setStudents((prevStudents) => [...prevStudents, data.student]);
+        setStudents((prevStudents: any) => [...prevStudents, data.student]);
         // Clear the form
         setName("");
         setEmail("");
