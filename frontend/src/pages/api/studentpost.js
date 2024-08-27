@@ -10,7 +10,8 @@ export default async function handler(req, res) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, class_id }),
+        //creating single obj from 3 props sent thru front end
+        body: JSON.stringify({ name, email, class_id }), //NExt.js auto parse the json string in transmit to js object so have to parse back to json string to send to post api
       });
 
       const data = await response.json();
