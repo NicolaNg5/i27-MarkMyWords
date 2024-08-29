@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app'
 import '@/styles/global.css'
 import SideBar from '@/components/SideBar'
 import Header from '@/components/Header'
+import Head from 'next/head'
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
@@ -19,6 +20,10 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
  
   return (
     <>
+      <Head>
+        <title>MarkMyWords</title>
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </Head>
       <div className="relative min-h-screen flex bg-white">
         <SideBar />
           <div className="flex-1 flex flex-col">
