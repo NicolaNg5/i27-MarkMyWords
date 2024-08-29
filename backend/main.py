@@ -7,7 +7,7 @@ import os
 
 app = FastAPI()
 
-API_KEY = "AIzaSyDlIgvojKuLfMr9LB1NBV2TSrJhKiX5Y6Q"  
+API_KEY = "AIzaSyA8l6_LJc_cJzwzOVBFA2zu1z8Tg1-3zWM"  
 MODEL_NAME = "gemini-1.5-pro"
 
 with open("prompts.json", "r") as f:
@@ -113,3 +113,4 @@ async def generate_response(request: Request):
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
+    

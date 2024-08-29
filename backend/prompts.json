@@ -4,7 +4,31 @@
       "content": "Analyse this reading material and provide some key points."
     },
     "prompt2": {
-      "name": "Create a Quiz",
-      "content": "Create a 10 questions quiz from this reading material."
+      "name": "10 Short Answers",
+      "content": "Create a quiz of 10 short-answers questions from this reading material. No need to provide answers."
+    },
+    "prompt3": {
+      "name": "10 Multiple Choices",
+      "content": "Create a quiz of 10 multiple-choices questions from this reading material. Provide the answers for each of them as well."
+    },
+    "prompt4": {
+      "name": "10 True/False",
+      "content": "Create a quiz of 10 true/false questions from this reading material. Provide the answers for each of them as well."
+    },
+    "prompt5": {
+      "name": "10 Agree/Disagree",
+      "content": "Create a quiz of 10 agree/disagree questions from this reading material. Provide the answers for each of them as well."
+    },
+    "prompt6": {
+      "name": "10 Correct/Incorrect",
+      "content": "Create a quiz of 10 correct/incorrect questions from this reading material. Provide the answers for each of them as well."
+    },
+    "prompt7": {
+      "name": "10 Highlight",
+      "content": "Create a quiz of 10 questions starting with 'Please highlight in the paragraph:'. No need to provide answers."
+    },
+    "prompt8": {
+      "name": "10 Highlight",
+      "content": "Create a quiz of 10 questions starting with 'Please highlight in the paragraph:'. No need to provide answers."
     }
 }

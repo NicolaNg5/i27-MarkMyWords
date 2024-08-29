@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import TextHighlight from "../components/TextHighlight";
 
 export default function Home() {
   const [prompts, setPrompts] = useState([]);
@@ -9,11 +10,13 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState("");
 
+  const [highlightedText, setHighlightedText] = useState("");
+
   function formatResponse(text) {
     if (!text) {
       return '';
     }
-    
+
     return text.replace(/\n/g, '<br>');
   }
 
@@ -55,12 +58,12 @@ export default function Home() {
     }
 
     try {
-      console.log("File Content Before Sending:", fileContent); 
+      console.log("File Content Before Sending:", fileContent);
 
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "text/plain; charset=utf-8" },
-        body: fileContent, 
+        body: fileContent,
       });
 
       if (!res.ok) {
@@ -68,7 +71,7 @@ export default function Home() {
       }
 
       const data = await res.json();
-      console.log("Frontend - File Uploaded:", data); 
+      console.log("Frontend - File Uploaded:", data);
 
     } catch (error) {
       console.error("Frontend - Error:", error);
@@ -96,10 +99,15 @@ export default function Home() {
       const data = await res.json();
       console.log("Frontend - Received Data:", data);
       setResponse(data);
+
     } catch (error) {
       console.error("Frontend - Error:", error);
       setError("Error generating response");
     }
+  };
+
+  const handleHighlightedText = (text) => {
+    setHighlightedText(text);
   };
 
   return (
@@ -116,9 +124,21 @@ export default function Home() {
       <br />
       <input type="file" onChange={handleFileChange} />
       <br />
-      <button onClick={handleUpload}>Upload File</button> 
-      <br/>
+      <button onClick={handleUpload}>Upload File</button>
+      <br />
       <button onClick={handleSubmit}>Generate Response</button>
+      
+
+      {console.log("FILE CONTENT:", fileContent)}
+      {fileContent && ( 
+        <div>
+          <h2>File Content:</h2>
+          <TextHighlight 
+            htmlContent={fileContent} 
+            onHighlight={handleHighlightedText} 
+          />
+        </div>
+      )}
 
       {error ? (
         <div>{error}</div>
@@ -126,6 +146,11 @@ export default function Home() {
         <div>
           <h2>Response:</h2>
           <div dangerouslySetInnerHTML={{ __html: formatResponse(response.response) }} />
+          {highlightedText && (
+            <div>
+              <strong>Highlighted Text:</strong> {highlightedText}
+            </div>
+          )}
         </div>
       ) : null}
     </div>
