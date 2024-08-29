@@ -59,7 +59,6 @@ export default function TestSupabase() {
   }, []);
 
   return (
-    <Layout>
       <div>
         <h1>Testing the retrieval of supabase tables</h1>
         {error ? (
@@ -82,7 +81,6 @@ export default function TestSupabase() {
           </>
         )}
       </div>
-    </Layout>
   );
 }
 
@@ -256,7 +254,7 @@ function AddStudentForm({ setStudents, setError }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="">
+    <form onSubmit={handleSubmit}>
       <h2>Add New Student</h2>
       <input
         value={name}

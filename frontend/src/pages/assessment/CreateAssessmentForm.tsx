@@ -80,7 +80,7 @@ const CreateAssessmentForm: React.FC = () => {
             <div className="place-content-center">
               <label
                 htmlFor="file-upload"
-                className="bg-blue-500 text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-blue-600"
+                className="bg-primary text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-primary-dark"
               >
                 Upload File
               </label>
@@ -98,7 +98,7 @@ const CreateAssessmentForm: React.FC = () => {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+          className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
         >
           Create
         </button>

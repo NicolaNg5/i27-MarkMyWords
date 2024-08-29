@@ -38,7 +38,7 @@ const AssessmentTable = (props: AssementTableProps) => {
             <td className="px-4 py-2 border-b border-gray-300">
               <Link
                 href={`/assessment/${assessment.id}`}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
               >
                 View Assessment
               </Link>

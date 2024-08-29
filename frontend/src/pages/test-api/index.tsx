@@ -61,7 +61,6 @@ export default function AIPrompting() {
 
   return (
     <>
-    <Layout>
     <div className="text-gray-600">
       <h1>Model Prompting</h1>
       <select value={selectedPrompt} onChange={handlePromptChange}>
@@ -87,7 +86,6 @@ export default function AIPrompting() {
         </div>
       ) : null}
     </div>
-    </Layout>
     </>
   );
 }

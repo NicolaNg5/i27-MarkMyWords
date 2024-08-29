@@ -14,9 +14,9 @@ const Sidebar: React.FC = () => {
     { icon: <IoIosSettings color="grey"/>, route: "/settings" },
     { icon: <FaUsers color="grey"/>, route: "/users" },
     { icon: <FaBook color="grey"/>, route: "/assessment" },
-    { icon: "", route: "/create-quiz"},
-    { icon: "", route: "/test-supabase"},
-    { icon: "", route: "/test-api"},
+    { icon: "C", route: "/create-quiz"},
+    { icon: "TS", route: "/test-supabase"},
+    { icon: "TA", route: "/test-api"},
   ];
 
   return (

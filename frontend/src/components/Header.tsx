@@ -3,7 +3,7 @@ import React from "react";
 
 const Header: React.FC = () => {
   return (
-    <header className="flex justify-between z-10 items-center p-4 bg-blue-400 text-white">
+    <header className="flex justify-between z-10 items-center p-4 bg-primary text-white">
       <div className="text-lg font-semibold">Mark My Words</div>
       <div className="flex items-center">
         <a href="#" className="mr-4 text-sm">

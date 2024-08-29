@@ -4,16 +4,12 @@ import Layout from '../components/layout'
 import type { NextPageWithLayout } from './_app'
  
 const Page: NextPageWithLayout = () => {
-  return <p>hello world</p>
-}
- 
-Page.getLayout = function getLayout(page: ReactElement) {
   return (
-    <Layout>
-      <main className="flex-1 p-8">
-          This is the home page
-        </main>
-    </Layout>
+    <>
+      <main className="text-black flex-1 p-8">
+        This is the home page
+      </main>
+    </>
   )
 }
  
