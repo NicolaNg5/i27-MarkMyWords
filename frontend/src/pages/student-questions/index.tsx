@@ -1,79 +1,102 @@
 // src/pages/assessment/[id].tsx
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import QuestionNavigation from '@/components/QuestionNavigation';
-import MultipleChoiceQuestion from '@/components/MultipleChoiceQuestion';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion";
+import ShortAnswerQuestion from "@/components/ShortAnswerQuestion";
+import QuestionNavigation from "@/components/QuestionNavigation";
+import Timer from "@/components/Timer";
 
-const AssessmentPage = () => {
+interface Question {
+  id: number;
+  type: "multiple-choice" | "short-answer";
+  text: string;
+  options?: string[];
+}
+const AssessmentPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(3599); 
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-
-  const totalQuestions = 10; 
-
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [timeLeft, setTimeLeft] = useState(3600); // 1 hour in seconds
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(timer);
+    // Sample Questions
+    setQuestions([
+      {
+        id: 1,
+        type: "multiple-choice",
+        text: "What is the capital of France?",
+        options: ["London", "Berlin", "Paris", "Madrid"],
+      },
+      { id: 2, type: "short-answer", text: "What is the meaning of ...?" },
+      { id: 3, type: "short-answer", text: "What is the meaning of ...?" },
+      { id: 4, type: "short-answer", text: "What is the meaning of ...?" },
+      {
+        id: 5,
+        type: "multiple-choice",
+        text: "What is the capital of France?",
+        options: ["London", "Berlin", "Paris", "Madrid"],
+      },
+    ]);
   }, []);
 
   const handleAnswerSelect = (answer: string) => {
-    setSelectedAnswer(answer);
+    setAnswers({ ...answers, [currentQuestion]: answer });
   };
 
-  const handlePreviousQuestion = () => {
+  const handleNavigation = (questionNumber: number) => {
+    setCurrentQuestion(questionNumber);
+  };
+
+  const handlePrevious = () => {
     if (currentQuestion > 1) {
       setCurrentQuestion(currentQuestion - 1);
-      setSelectedAnswer(null);
     }
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestion < totalQuestions) {
+  const handleNext = () => {
+    if (currentQuestion < questions.length) {
       setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
+  const currentQuestionData = questions[currentQuestion - 1];
   return (
     <div className="flex flex-col">
-      {/* Header */}
-      <header className="p-4 text- flex justify-between items-center">
+      <header className="p-4 flex justify-between items-center">
         <h1 className="text-xl">Assessment {id}</h1>
-        <div className="text-xl">{formatTime(timeLeft)}</div>
+        <Timer timeLeft={timeLeft} />
       </header>
 
-      {/* Main content */}
-      <div className=" flex flex-col items-center p-4 mb-9">
+      <div className="flex flex-col items-center p-4 mb-9">
         <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-6">
-          <MultipleChoiceQuestion
-            questionNumber={currentQuestion}
-            questionText="What is the meaning of ...?"
-            options={["A: Answer", "B: Answer", "C: Answer", "D: Answer"]}
-            selectedAnswer={selectedAnswer}
-            onAnswerSelect={handleAnswerSelect}
-          />
+          {currentQuestionData &&
+            (currentQuestionData.type === "multiple-choice" ? (
+              <MultipleChoiceQuestion
+                questionNumber={currentQuestion}
+                questionText={currentQuestionData.text}
+                options={currentQuestionData.options || []}
+                selectedAnswer={answers[currentQuestion] || null}
+                onAnswerSelect={handleAnswerSelect}
+              />
+            ) : (
+              <ShortAnswerQuestion
+                questionNumber={currentQuestion}
+                questionText={currentQuestionData.text}
+                answer={answers[currentQuestion] || ""}
+                onAnswerChange={(answer) => handleAnswerSelect(answer)}
+              />
+            ))}
         </div>
       </div>
 
-      {/* Footer with navigation */}
-        <QuestionNavigation
-          totalQuestions={totalQuestions}
-          currentQuestion={currentQuestion}
-          onNavigate={setCurrentQuestion}
-          onPrevious={handlePreviousQuestion}
-          onNext={handleNextQuestion}
-        />
+      <QuestionNavigation
+        totalQuestions={questions.length}
+        currentQuestion={currentQuestion}
+        onNavigate={handleNavigation}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
     </div>
   );
 };

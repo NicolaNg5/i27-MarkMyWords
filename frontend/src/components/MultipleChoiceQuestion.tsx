@@ -21,9 +21,9 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
     <div className="mb-8">
       <div className="mb-8 text-center">
         <h2 className="text-xl mb-4">
-          Question {questionNumber}: What is the meaning of ...?
+          Question {questionNumber}: { questionText }
         </h2>
-      </div>{" "}
+      </div>
       <div className="space-y-4">
         {options.map((option, index) => (
           <label
