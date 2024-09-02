@@ -18,8 +18,9 @@ const TextHighlight = ({ htmlContent, onHighlight }) => {
 
       const selectedTextNode = newRange.extractContents();
 
+      const highlightedNode = document.createTextNode(selectedText);
       newRange.insertNode(highlightedNode); 
-      selectedTextNode.textContent = ""; 
+      selectedTextNode.textContent = "";
 
       setHighlightedText(selectedText);
       onHighlight(selectedText);

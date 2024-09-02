@@ -9,6 +9,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState("");
+  const [fileName, setFileName] = useState("");
 
   const [highlightedText, setHighlightedText] = useState("");
 
@@ -49,6 +50,9 @@ export default function Home() {
       reader.readAsText(file);
     }
   };
+  const handleFileName = (event) => {
+    setFileName(event.target.value);
+  };
 
   const handleUpload = async () => {
     setError(null);
@@ -56,14 +60,19 @@ export default function Home() {
       setError("Please select a file.");
       return;
     }
+    if (!fileName) {
+      setError("Please enter a file name.");
+      return;
+    }
 
     try {
-      console.log("File Content Before Sending:", fileContent);
+      console.log("Frontend - Sending File Content:", fileContent);
+      console.log("Frontend - Sending File Name:", fileName);
 
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "text/plain; charset=utf-8" },
-        body: fileContent,
+        body: fileName + "\n" + fileContent,
       });
 
       if (!res.ok) {
@@ -124,6 +133,15 @@ export default function Home() {
       <br />
       <input type="file" onChange={handleFileChange} />
       <br />
+      <div>
+        <label htmlFor="fileName">File Name:</label>
+        <input 
+          type="text" 
+          id="fileName" 
+          value={fileName} 
+          onChange={handleFileName} 
+        />
+      </div>
       <button onClick={handleUpload}>Upload File</button>
       <br />
       <button onClick={handleSubmit}>Generate Response</button>

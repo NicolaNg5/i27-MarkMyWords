@@ -36,12 +36,41 @@ model = GenerativeModel(
 
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
+if not os.path.exists("questions"):
+    os.makedirs("questions")
 
-try:
-    with open("responses.json", "r") as f:
-        RESPONSES = json.load(f)
-except FileNotFoundError:
-    RESPONSES = []
+def save_response(response_data, prompt_name):
+    file_path = None
+
+    if prompt_name == "Analyse Reading Material":
+        file_path = "analysis.json"
+        response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
+    elif prompt_name == "10 Short Answers":
+        file_path = "questions/shortAns.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name == "10 Multiple Choices":
+        file_path = "questions/multiChoices.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
+        file_path = "questions/cards.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name == "10 Highlight":
+        file_path = "questions/highlights.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+
+    if file_path:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+        except FileNotFoundError:
+            existing_data = []
+
+        existing_data.append(response_data)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(existing_data, f, indent=3)
+
+uploaded_file = None 
 
 @app.get("/prompts")
 def get_prompts():
@@ -54,16 +83,16 @@ async def upload_file(request: Request):
     global uploaded_file
     print("Backend - Receiving File Content...")
     try:
-        file_content = (await request.body()).decode("utf-8").strip()
+        body_text = (await request.body()).decode("utf-8")
+        file_name, file_content = body_text.split("\n", 1)  
+
+        uploaded_file = file_name
+        
         print("File Content:", file_content)
+        print("File Name:", file_name)
 
         if not file_content:
             return {"error": "No file content received"}
-
-        words = file_content.split()
-        file_name = '-'.join(words[:3]) + '.txt' 
-
-        uploaded_file = file_name
 
         file_path = os.path.join("uploads", file_name)
         with open(file_path, "w", encoding="utf-8") as f: 
@@ -85,7 +114,7 @@ async def generate_response(request: Request):
         print("Prompt Key:", prompt_key)
 
         selected_prompt = next(
-            (p["content"] for p in PROMPTS.values() if p["name"] == prompt_key), None
+            (p for p in PROMPTS.values() if p["name"] == prompt_key), None
         )
         if selected_prompt is None:
             return {"error": "Invalid prompt name"}
@@ -97,20 +126,19 @@ async def generate_response(request: Request):
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
 
-        response = model.generate_content(contents=[file_content, selected_prompt])
+        response = model.generate_content(contents=[file_content, selected_prompt["content"]])
         response_text = response.text
 
         response_data = {
-            "prompt": selected_prompt,
-            "response": response_text, 
+            "prompt": selected_prompt["name"],
+            "response": response_text,
+            "file_name": uploaded_file,
         }
-        RESPONSES.append(response_data)
-        with open("responses.json", "w", encoding="utf-8") as f:
-            json.dump(RESPONSES, f, indent=3)
+
+        save_response(response_data, prompt_key) 
 
         return {"response": response_text}
 
     except Exception as e:
         print("Backend - General Error:", e)
-        return {"error": f"An error occurred: {str(e)}"}
-    
+        return {"error": f"An error occurred: {str(e)}"} 

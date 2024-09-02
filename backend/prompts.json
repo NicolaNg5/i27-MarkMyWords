@@ -1,34 +1,30 @@
 {
-    "prompt1": {
-      "name": "Analyse Reading Material",
-      "content": "Analyse this reading material and provide some key points."
-    },
-    "prompt2": {
-      "name": "10 Short Answers",
-      "content": "Create a quiz of 10 short-answers questions from this reading material. No need to provide answers."
-    },
-    "prompt3": {
-      "name": "10 Multiple Choices",
-      "content": "Create a quiz of 10 multiple-choices questions from this reading material. Provide the answers for each of them as well."
-    },
-    "prompt4": {
-      "name": "10 True/False",
-      "content": "Create a quiz of 10 true/false questions from this reading material. Provide the answers for each of them as well."
-    },
-    "prompt5": {
-      "name": "10 Agree/Disagree",
-      "content": "Create a quiz of 10 agree/disagree questions from this reading material. Provide the answers for each of them as well."
-    },
-    "prompt6": {
-      "name": "10 Correct/Incorrect",
-      "content": "Create a quiz of 10 correct/incorrect questions from this reading material. Provide the answers for each of them as well."
-    },
-    "prompt7": {
-      "name": "10 Highlight",
-      "content": "Create a quiz of 10 questions starting with 'Please highlight in the paragraph:'. No need to provide answers."
-    },
-    "prompt8": {
-      "name": "10 Highlight",
-      "content": "Create a quiz of 10 questions starting with 'Please highlight in the paragraph:'. No need to provide answers."
-    }
+  "prompt1": {
+    "name": "Analyse Reading Material",
+    "content": "Analyse this reading material and provide the analysis in JSON format: {'analysis': '<your_analysis_here>'}"
+  },
+  "prompt2": {
+    "name": "10 Short Answers",
+    "content": "Create 10 short-answer questions from this reading material. Output each question as a JSON object with the key 'question', like this: [{'question': 'Question 1'}, {'question': 'Question 2'}, ...]" 
+  },
+  "prompt3": {
+    "name": "10 Multiple Choices",
+    "content": "Create 10 multiple-choice questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', 'option3', 'option4', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Option A', 'option2': 'Option B', 'option3': 'Option C', 'option4': 'Option D', 'correctOption': 'Option B'}, ...]"
+  },
+  "prompt4": {
+    "name": "10 True/False",
+    "content": "Create 10 true/false questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'True', 'option2': 'False', 'correctOption': 'True'}, ...]"
+  },
+  "prompt5": {
+    "name": "10 Agree/Disagree",
+    "content": "Create 10 agree/disagree questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Agree', 'option2': 'Disagree', 'correctOption': 'Agree'}, ...]"
+  },
+  "prompt6": {
+    "name": "10 Correct/Incorrect",
+    "content": "Create 10 correct/incorrect questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Correct', 'option2': 'Incorrect', 'correctOption': 'Correct'}, ...]"
+  },
+  "prompt7": {
+    "name": "10 Highlight",
+    "content": "Create 10 questions from this reading material, each starting with 'Please highlight in the paragraph: ' and output each question as a JSON object with the key 'question', like this: [{'question': 'Please highlight in the paragraph: Question 1'}, ...]" 
+  }
 }
