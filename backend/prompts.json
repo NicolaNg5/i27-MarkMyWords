@@ -5,26 +5,26 @@
   },
   "prompt2": {
     "name": "10 Short Answers",
-    "content": "Create 10 short-answer questions from this reading material. Output each question as a JSON object with the key 'question', like this: [{'question': 'Question 1'}, {'question': 'Question 2'}, ...]" 
+    "content": "Create 10 short-answer questions from this reading material. Output each question as plain text but with a JSON format with the key 'question', like this: [{'question': 'Question 1'}, {'question': 'Question 2'}, ...]. Start with '['" 
   },
   "prompt3": {
     "name": "10 Multiple Choices",
-    "content": "Create 10 multiple-choice questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', 'option3', 'option4', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Option A', 'option2': 'Option B', 'option3': 'Option C', 'option4': 'Option D', 'correctOption': 'Option B'}, ...]"
+    "content": "Create 10 multiple-choice questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', 'option3', 'option4', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Option A', 'option2': 'Option B', 'option3': 'Option C', 'option4': 'Option D', 'correctOption': 'Option B'}, ...]. Start with '['"
   },
   "prompt4": {
     "name": "10 True/False",
-    "content": "Create 10 true/false questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'True', 'option2': 'False', 'correctOption': 'True'}, ...]"
+    "content": "Create 10 true/false questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'True', 'option2': 'False', 'correctOption': 'True'}, ...]. Start with '['"
   },
   "prompt5": {
     "name": "10 Agree/Disagree",
-    "content": "Create 10 agree/disagree questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Agree', 'option2': 'Disagree', 'correctOption': 'Agree'}, ...]"
+    "content": "Create 10 agree/disagree questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Agree', 'option2': 'Disagree', 'correctOption': 'Agree'}, ...]. Start with '['"
   },
   "prompt6": {
     "name": "10 Correct/Incorrect",
-    "content": "Create 10 correct/incorrect questions from this reading material. Output each question as a JSON object with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Correct', 'option2': 'Incorrect', 'correctOption': 'Correct'}, ...]"
+    "content": "Create 10 correct/incorrect questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Correct', 'option2': 'Incorrect', 'correctOption': 'Correct'}, ...]. Start with '['"
   },
   "prompt7": {
     "name": "10 Highlight",
-    "content": "Create 10 questions from this reading material, each starting with 'Please highlight in the paragraph: ' and output each question as a JSON object with the key 'question', like this: [{'question': 'Please highlight in the paragraph: Question 1'}, ...]" 
+    "content": "Create 10 questions from this reading material, each starting with 'Please highlight in the paragraph: ' and output each question as plain text but with a JSON format with the key 'question', like this: [{'question': 'Please highlight in the paragraph: Question 1'}, ...]. Start with '['" 
   }
 }
