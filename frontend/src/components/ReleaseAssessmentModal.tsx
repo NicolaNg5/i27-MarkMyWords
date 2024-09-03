@@ -38,7 +38,6 @@ const ReleaseAssessmentModal: React.FC<ReleaseAssessmentModalProps> = ({ isOpen,
               className="w-full p-2 border rounded"
               placeholder="Monday 10th of June"
             />
-            <button className="ml-2 bg-gray-200 p-2 rounded">📅</button>
           </div>
         </div>
         <div className="mb-6">
