@@ -1,7 +1,7 @@
 // src/components/QuestionNavigation.tsx
 
 import React from 'react';
-import Button from './Button'; // Assuming you have a Button component
+import Button from './Button'; 
 
 interface QuestionNavigationProps {
   totalQuestions: number;
