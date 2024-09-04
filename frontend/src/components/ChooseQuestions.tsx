@@ -17,13 +17,12 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string }> = ({ res
 
   useEffect(() => {
     if (response) {
-      // Add filename to each question object during parsing
       setQuestions(convertToJsonArray(response).map(question => ({ ...question, filename: fileName })));
     }
   }, [response, fileName]); 
 
   function convertToJsonArray(plainText: string): Question[] {
-    let jsonString = plainText.replace(/^```json\s*|\s*```$/g, '').replace(/'/g, '"');
+    let jsonString = plainText.replace(/'/g, '"');
     let jsonArray = JSON.parse(jsonString);
     return jsonArray as Question[];
   }
@@ -39,7 +38,6 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string }> = ({ res
   const handleSaveQuestions = async () => {
     try {
       const selectedQuestionData = selectedQuestions.map(i => questions[i]);
-      console.log("Selected Question Data:", selectedQuestionData)
       const res = await fetch('/api/save_questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +51,6 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string }> = ({ res
       }
     } catch (error) {
       console.error("Error saving questions:", error);
-      // Handle the error (e.g., display an error message to the user)
     }
   };
 
