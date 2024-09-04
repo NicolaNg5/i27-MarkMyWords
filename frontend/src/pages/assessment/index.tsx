@@ -2,25 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import Button from '@/components/Button';
-import Modal from '@/components/Modal';
+import Modal from '@/components/modals/Modal';
 import AssessmentTable from '@/components/AssessmentTable';
-import CreateAssessmentForm from './CreateAssessmentForm';
-
-
-async function getAssessments() {
-  const res = await fetch('http://localhost:3000/assignment.json', { cache: 'no-store' });
-  const data = await res.json();
-  return data?.items as any[];
-}
+import CreateAssessmentForm from '../../components/modals/CreateAssessmentForm';
+import { Assessment } from '@/types/assessment';
+import { BiPlus } from 'react-icons/bi';
 
 export default function AssignmentPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [assessments, setAssessments] = useState<any[]>([]);
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAssessments = async () => {
-    const data = await getAssessments();
-    setAssessments(data);
-  };
+    try {
+      const res = await fetch("/api/assessments");
+      const data = await res.json();
+      setAssessments(data?.data as Assessment[]); //filled with array response
+    } catch (error) {
+      setError("Error fetching assessments");
+    }
+  };;
 
   // Fetch assignments on component mount
   useEffect(() => {
@@ -31,11 +32,16 @@ export default function AssignmentPage() {
     <>
         <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-black">Reading Comprehension</h1>
-        <Button text="+ Create Assessment" onClick={() => setIsModalOpen(true)} />
+        <Button 
+          text="Create Assessment" 
+          icon={<BiPlus/>}
+          additionalStyling="bg-secondary text-black hover:bg-secondary-dark transition-colors duration-300"
+          onClick={() => setIsModalOpen(true)} 
+        />
         </div>
         <AssessmentTable assessments={assessments} />
         {/* Modal for Creating Assessments */}
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Modal title="Create Assessment" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <CreateAssessmentForm />
         </Modal>
     </>

@@ -5,13 +5,17 @@ import DifficultyArea from '@/components/DifficultyArea';
 import ViewSelection from '@/components/ViewSelection';
 import ScoreDistribution from '@/components/ScoreDistribution';
 import Ranking from '@/components/Ranking';
+import { useRouter } from 'next/router';
 
-const IndexPage: React.FC = () => {
+const AssessmentResults: React.FC = () => {
   const [isStudentView, setIsStudentView] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState('Student1');
   const [selectedView, setSelectedView] = useState<
     'Performance Trend' | 'Area of Difficulty' | 'Score Distribution' | 'Class Ranking'
   >('Area of Difficulty');
+
+  const router = useRouter();
+  const { assessmentid } = router.query;
 
   // Sample for student list
   const students = ['Student1', 'Student2', 'Student3'];
@@ -109,4 +113,4 @@ const IndexPage: React.FC = () => {
   );
 };
 
-export default IndexPage;
+export default AssessmentResults;

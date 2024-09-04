@@ -1,17 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
-import TextHighlight from "../components/TextHighlight";
-import ChooseQuestions from "../components/ChooseQuestions";
+import TextHighlight from "@/components/TextHighlight";
+import ChooseQuestions from "@/components/ChooseQuestions";
 
 export default function Home() {
-  const [prompts, setPrompts] = useState([]);
-  const [selectedPrompt, setSelectedPrompt] = useState("");
-  const [response, setResponse] = useState(null);
-  const [error, setError] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileContent, setFileContent] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [highlightedText, setHighlightedText] = useState("");
+  const [prompts, setPrompts] = useState<any>([]);
+  const [selectedPrompt, setSelectedPrompt] = useState<any>("");
+  const [response, setResponse] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [fileContent, setFileContent] = useState<any | null>("");
+  const [fileName, setFileName] = useState<any>("");
+  const [highlightedText, setHighlightedText] = useState<any>("");
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -26,23 +26,23 @@ export default function Home() {
     fetchPrompts();
   }, []);
 
-  const handlePromptChange = (event) => {
+  const handlePromptChange = (event: any) => {
     setSelectedPrompt(event.target.value);
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = (event: any) => {
     const file = event.target.files[0];
     setSelectedFile(file);
 
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setFileContent(e.target.result);
+        setFileContent(e.target?.result);
       };
       reader.readAsText(file);
     }
   };
-  const handleFileName = (event) => {
+  const handleFileName = (event: any) => {
     setFileName(event.target.value);
   };
 
@@ -82,7 +82,7 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event : any) => {
     event.preventDefault();
     setError(null);
 
@@ -109,7 +109,7 @@ export default function Home() {
     }
   };
 
-  const handleHighlightedText = (text) => {
+  const handleHighlightedText = (text : any) => {
     setHighlightedText(text);
   };
 
@@ -131,7 +131,7 @@ export default function Home() {
       <br />
       <select value={selectedPrompt} onChange={handlePromptChange}>
         <option value="">Select a prompt</option>
-        {prompts.map((prompt, index) => (
+        {prompts.map((prompt: any, index: any) => (
           <option key={index} value={prompt}>
             {prompt}
           </option>
@@ -143,7 +143,7 @@ export default function Home() {
       {fileContent && ( 
         <div>
           <h2>File Content:</h2>
-          <TextHighlight 
+          <TextHighlight
             htmlContent={fileContent} 
             onHighlight={handleHighlightedText} 
           />

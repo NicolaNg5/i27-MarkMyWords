@@ -41,8 +41,6 @@ const CreateAssessmentForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="text-black"
     >
-      <h2 className="text-2xl font-semibold mb-4">Create Assessment</h2>
-
       <div className="mb-4">
         <label className="block mb-2">Title</label>
         <input

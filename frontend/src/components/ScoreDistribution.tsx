@@ -67,7 +67,7 @@ const ScoreDistribution: React.FC<ScoreDistributionProps> = ({ scores }) => {
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return <Bar data={data} options={options}/>;
 };
 
 export default ScoreDistribution;

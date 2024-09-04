@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 import styles from "./testsupabase.module.css";
 import Layout from "@/components/layout";
+import { Student } from "@/types/student";
 
 export default function TestSupabase() {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState([]);
@@ -40,7 +41,7 @@ export default function TestSupabase() {
       try {
         const res = await fetch("/api/students");
         const data = await res.json();
-        setStudents(data.data); //filled with array response
+        setStudents(data?.data as Student[]); //filled with array response
       } catch (error) {
         setError("Error fetching students");
       }
@@ -113,7 +114,13 @@ function StudentsTable( students: any ) {
   );
 }
 
-function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
+interface SelectedStudentProps{
+  students: any,
+  onSelectStudent: (id: any) => void,
+  selectedStudent: any,
+}
+
+function SelectedStudent({ students, onSelectStudent, selectedStudent } : SelectedStudentProps) {
   //func called onselect to set selected student oonly if student.id is set
   const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
@@ -158,7 +165,11 @@ function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
   );
 }
 
-function AnswerTable({ answers }) {
+interface AnswerTableProps {
+  answers: any,
+}
+
+function AnswerTable({ answers }:AnswerTableProps) {
   if (!answers.length) return <p>No answers found.</p>;
   return (
     <>
@@ -185,7 +196,13 @@ function AnswerTable({ answers }) {
   );
 }
 
-function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
+interface SelectedAnswerProps { 
+  answers: any, 
+  onSelectAnswer: (id:any) => void, 
+  selectedAnswer: any,
+}
+
+function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }: SelectedAnswerProps) {
   const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     if (selectedId) {
@@ -222,7 +239,12 @@ function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
   );
 }
 
-function AddStudentForm({ setStudents, setError }) {
+interface AddStudentFormProps {
+  setStudents : (student: any) => void,
+  setError : (error: any) => void, 
+}
+
+function AddStudentForm({ setStudents, setError } : AddStudentFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [classId, setClassId] = useState("");

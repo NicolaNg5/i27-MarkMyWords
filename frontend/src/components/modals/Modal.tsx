@@ -3,12 +3,13 @@
 import React from "react";
 
 interface ModalProps {
+  title: string;
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
@@ -22,6 +23,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
             &times;
           </button>
         </div>
+        <h2 className="text-2xl font-semibold mb-4">{title}</h2>
         {children}
       </div>
     </div>
