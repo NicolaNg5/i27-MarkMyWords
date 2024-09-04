@@ -9,6 +9,7 @@ from google.generativeai import GenerativeModel
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import json
+import os
 
 app = FastAPI()
 
@@ -19,7 +20,7 @@ key = config("SUPABASE_KEY")
 supabase: Client = create_client(url,key)
 
 #AI GEMINI Credentials:
-API_KEY = "AIzaSyA8l6_LJc_cJzwzOVBFA2zu1z8Tg1-3zWM" 
+API_KEY = "AIzaSyA8l6_LJc_cJzwzOVBFA2zu1z8Tg1-3zWM"
 MODEL_NAME = "gemini-1.5-pro"
 
 with open("prompts.json", "r") as f:
@@ -39,7 +40,6 @@ safety_settings = [
     {"category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
 ]
 
-
 genai.configure(api_key=API_KEY)
 model = GenerativeModel(
     model_name=MODEL_NAME,
@@ -47,11 +47,43 @@ model = GenerativeModel(
     safety_settings=safety_settings,
 )
 
-try:
-    with open("responses.json", "r") as f:
-        responses = json.load(f)
-except FileNotFoundError:
-    responses = []
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+if not os.path.exists("questions"):
+    os.makedirs("questions")
+
+def save_response(response_data, prompt_name):
+    file_path = None
+
+    if prompt_name == "Analyse Reading Material":
+        file_path = "analysis.json"
+        response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
+    elif prompt_name == "10 Short Answers":
+        file_path = "questions/shortAns.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name == "10 Multiple Choices":
+        file_path = "questions/multiChoices.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
+        file_path = "questions/cards.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+    elif prompt_name == "10 Highlight":
+        file_path = "questions/highlights.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+
+    if file_path:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+        except FileNotFoundError:
+            existing_data = []
+
+        existing_data.append(response_data)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(existing_data, f, indent=3)
+
+uploaded_file = None
 
 
 #AI API endpoints
@@ -59,37 +91,102 @@ except FileNotFoundError:
 def get_prompts():
     return {"prompts": [prompt["name"] for prompt in PROMPTS.values()]}
 
-@app.post("/generate")
-async def generate_response(request: Request):
-    print("Backend - Received Request Body:", await request.body())  
+uploaded_file = None
+
+@app.post("/upload")
+async def upload_file(request: Request):
+    global uploaded_file
+    print("Backend - Receiving File Content...")
     try:
-        prompt_key = await request.body()
-        prompt_key = prompt_key.decode("utf-8")
-        print("Backend - Parsed Prompt Key:", prompt_key)
+        body_text = (await request.body()).decode("utf-8")
+        file_name, file_content = body_text.split("\n", 1)
 
-        selected_prompt = next((p["content"] for p in PROMPTS.values() if p["name"] == prompt_key), None)
-        if selected_prompt is None:
-            return {"error": "Invalid prompt name"}
+        uploaded_file = file_name
 
-        response = model.generate_content(contents=[selected_prompt])
-        response_text = response.text
+        print("File Content:", file_content)
+        print("File Name:", file_name)
 
-        response_data = {
-            "prompt": selected_prompt,
-            "response": response_text,
-        }
+        if not file_content:
+            return {"error": "No file content received"}
 
-        responses.append(response_data)  
-        
-        with open("responses.json", "w") as f:
-            json.dump(responses, f, indent=3)  
+        file_path = os.path.join("uploads", file_name)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(file_content)
+        print(f"File saved to: {file_path}")
 
-        return {"response": response_text}
-    
+        return {"message": f"File content received and saved as {file_name}"}
+
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
-    
+
+@app.post("/generate")
+async def generate_response(request: Request):
+    global uploaded_file
+    print("Backend - Generating Response...")
+    try:
+        prompt_key = (await request.body()).decode("utf-8")
+        print("Prompt Key:", prompt_key)
+
+        selected_prompt = next(
+            (p for p in PROMPTS.values() if p["name"] == prompt_key), None
+        )
+        if selected_prompt is None:
+            return {"error": "Invalid prompt name"}
+
+        file_path = os.path.join("uploads", uploaded_file) if uploaded_file else None
+        if not file_path or not os.path.exists(file_path):
+            return {"error": "No file uploaded yet."}
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            file_content = f.read()
+
+        response = model.generate_content(contents=[file_content, selected_prompt["content"]])
+        response_text = response.text
+
+        response_data = {
+            "prompt": selected_prompt["name"],
+            "response": response_text,
+            "file_name": uploaded_file,
+        }
+
+        save_response(response_data, prompt_key)
+
+        return {"response": response_text}
+    except Exception as e:
+        print("Backend - General Error:", e)
+        return {"error": f"An error occurred: {str(e)}"}
+
+@app.post("/save_questions")
+async def save_questions(request: Request):
+    """
+    Saves the selected questions to a JSON file.
+    Modify to save into the actual database.
+    For Tom and Nicola.
+    """
+    try:
+        questions_text = (await request.body()).decode("utf-8")
+
+        print("Backend - Received Questions Text:", questions_text)
+
+        questions = json.loads(questions_text)
+
+        if not questions:
+            return {"error": "No questions received"}
+
+        print("Backend - Parsed Questions:", questions)
+
+        file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
+
+        with open(file_path, "a", encoding="utf-8") as f:
+            json.dump(questions, f, indent=3)
+
+        return {"message": "Questions saved successfully!"}
+
+    except Exception as e:
+        print("Error saving questions:", e)
+        return {"error": f"An error occurred: {str(e)}"}
+
 #--------------------------------------------------------------------------------------#
 
 #Supabase endpoints:
@@ -224,7 +321,7 @@ class StudentSchema(BaseModel):
 def create_student(student:StudentSchema):
     #UUID for student id
     student_id = str(uuid.uuid4())
-    
+
     #prepare data
     new_student = {
         "Studentid": student_id,
@@ -232,11 +329,11 @@ def create_student(student:StudentSchema):
         "email": student.email,
         "class": student.class_id
     }
-    
+
     try:
         #insert new student into supa
         result = supabase.table("student").insert(new_student).execute()
-        
+
         #check insertion
         if result.data:
             return {"message": "Student created successfully", "student": result.data[0]}
@@ -244,10 +341,9 @@ def create_student(student:StudentSchema):
             raise HTTPException(status_code=500, detail="Failed to create student")
     except APIError as e:
         if "foreign key constraint" in str(e).lower():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Class with ID {student.class_id} does not exist")
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    
