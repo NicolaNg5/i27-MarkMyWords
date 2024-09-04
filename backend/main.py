@@ -144,8 +144,7 @@ async def generate_response(request: Request):
     
 @app.post("/save_questions")
 async def save_questions(request: Request):
-    """Saves the selected questions to a JSON file."""
-
+    """Saves the selected questions to a JSON file. Modify to save into the actual database"""
     try:
         data = await request.json()
         questions = data.get("questions")
