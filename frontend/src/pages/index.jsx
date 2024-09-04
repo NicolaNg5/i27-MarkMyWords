@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import TextHighlight from "../components/TextHighlight";
+import ChooseQuestions from "../components/ChooseQuestions";
 
 export default function Home() {
   const [prompts, setPrompts] = useState([]);
@@ -10,16 +11,7 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState("");
   const [fileName, setFileName] = useState("");
-
   const [highlightedText, setHighlightedText] = useState("");
-
-  function formatResponse(text) {
-    if (!text) {
-      return '';
-    }
-
-    return text.replace(/\n/g, '<br>');
-  }
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -163,7 +155,7 @@ export default function Home() {
       ) : response ? (
         <div>
           <h2>Response:</h2>
-          <div dangerouslySetInnerHTML={{ __html: formatResponse(response.response) }} />
+          <ChooseQuestions response={response.response} fileName={fileName} />
           {highlightedText && (
             <div>
               <strong>Highlighted Text:</strong> {highlightedText}

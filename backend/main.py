@@ -138,7 +138,34 @@ async def generate_response(request: Request):
         save_response(response_data, prompt_key) 
 
         return {"response": response_text}
-
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"} 
+    
+@app.post("/save_questions")
+async def save_questions(request: Request):
+    """Saves the selected questions to a JSON file."""
+
+    try:
+        data = await request.json()
+        questions = data.get("questions")
+
+        if not questions:
+            return {"error": "No questions received"}
+
+        if not os.path.exists("questionsDtb.json"):
+            with open("questionsDtb.json", "w", encoding="utf-8") as f:
+                json.dump([], f, indent=3)  
+
+        with open("questionsDtb.json", "r+", encoding="utf-8") as f:
+            existing_questions = json.load(f)
+            existing_questions.extend(questions)
+            f.seek(0) 
+            json.dump(existing_questions, f, indent=3)
+            f.truncate() 
+
+        return {"message": "Questions saved successfully!"}
+
+    except Exception as e:
+        print("Error saving questions:", e)
+        return {"error": f"An error occurred: {str(e)}"}
