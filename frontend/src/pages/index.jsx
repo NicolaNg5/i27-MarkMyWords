@@ -69,6 +69,8 @@ export default function Home() {
 
       if (!res.ok) {
         throw new Error(`Error uploading file: ${res.status} ${res.statusText}`);
+      }else{
+        alert("File uploaded successfully under the name: " + fileName + "!");
       }
 
       const data = await res.json();
@@ -114,15 +116,6 @@ export default function Home() {
   return (
     <div>
       <h1>Model Prompting</h1>
-      <select value={selectedPrompt} onChange={handlePromptChange}>
-        <option value="">Select a prompt</option>
-        {prompts.map((prompt, index) => (
-          <option key={index} value={prompt}>
-            {prompt}
-          </option>
-        ))}
-      </select>
-      <br />
       <input type="file" onChange={handleFileChange} />
       <br />
       <div>
@@ -136,10 +129,17 @@ export default function Home() {
       </div>
       <button onClick={handleUpload}>Upload File</button>
       <br />
+      <select value={selectedPrompt} onChange={handlePromptChange}>
+        <option value="">Select a prompt</option>
+        {prompts.map((prompt, index) => (
+          <option key={index} value={prompt}>
+            {prompt}
+          </option>
+        ))}
+      </select>
+      <br />
       <button onClick={handleSubmit}>Generate Response</button>
       
-
-      {console.log("FILE CONTENT:", fileContent)}
       {fileContent && ( 
         <div>
           <h2>File Content:</h2>
@@ -154,7 +154,6 @@ export default function Home() {
         <div>{error}</div>
       ) : response ? (
         <div>
-          <h2>Response:</h2>
           <ChooseQuestions response={response.response} fileName={fileName} />
           {highlightedText && (
             <div>

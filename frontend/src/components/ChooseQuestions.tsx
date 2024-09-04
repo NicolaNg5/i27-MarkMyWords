@@ -38,10 +38,13 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string }> = ({ res
   const handleSaveQuestions = async () => {
     try {
       const selectedQuestionData = selectedQuestions.map(i => questions[i]);
+      console.log("Selected Question Data:", selectedQuestionData);
+      const questionsText = `[\n${selectedQuestionData.map(q => JSON.stringify(q)).join(',\n')}\n]`;
+
       const res = await fetch('/api/save_questions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questions: selectedQuestionData }),
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+        body: questionsText,
       });
 
       if (res.ok) {

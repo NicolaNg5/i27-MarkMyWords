@@ -144,24 +144,27 @@ async def generate_response(request: Request):
     
 @app.post("/save_questions")
 async def save_questions(request: Request):
-    """Saves the selected questions to a JSON file. Modify to save into the actual database"""
+    """
+    Saves the selected questions to a JSON file. 
+    Modify to save into the actual database.
+    For Tom and Nicola.
+    """
     try:
-        data = await request.json()
-        questions = data.get("questions")
+        questions_text = (await request.body()).decode("utf-8")
+
+        print("Backend - Received Questions Text:", questions_text)
+
+        questions = json.loads(questions_text)
 
         if not questions:
             return {"error": "No questions received"}
 
-        if not os.path.exists("questionsDtb.json"):
-            with open("questionsDtb.json", "w", encoding="utf-8") as f:
-                json.dump([], f, indent=3)  
+        print("Backend - Parsed Questions:", questions)
 
-        with open("questionsDtb.json", "r+", encoding="utf-8") as f:
-            existing_questions = json.load(f)
-            existing_questions.extend(questions)
-            f.seek(0) 
-            json.dump(existing_questions, f, indent=3)
-            f.truncate() 
+        file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
+
+        with open(file_path, "a", encoding="utf-8") as f:
+            json.dump(questions, f, indent=3)
 
         return {"message": "Questions saved successfully!"}
 
