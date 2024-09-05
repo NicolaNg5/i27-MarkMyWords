@@ -178,7 +178,7 @@ async def save_questions(request: Request):
 
         file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
 
-        with open(file_path, "a", encoding="utf-8") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(questions, f, indent=3)
 
         return {"message": "Questions saved successfully!"}

@@ -7,10 +7,10 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 const testQuestions: Question[] = [
-    { id: "1", question: "What is the capital of Nigeria?", type: QuestionType.MultipleChoice },
-    { id: "2", question: "What is the capital of Ghana?", type: QuestionType.ShortAnswer },
+    { id: "1", question: "What is the capital of Nigeria?", type: QuestionType.MultipleChoice, options: ["Lagos", "Abuja", "Kano", "Ibadan"] },
+    { id: "2", question: "What is the capital of Ghana?", type: QuestionType.ShortAnswer},
     { id: "3", question: "What is the capital of Togo?", type: QuestionType.FlashCard },
-    { id: "4", question: "What is the capital of Benin?", type: QuestionType.MultipleChoice },
+    { id: "4", question: "What is the capital of Benin?", type: QuestionType.MultipleChoice, options: ["Lagos", "Abuja", "Kano", "Ibadan"] },
 ];
 
 const QuestionPool: React.FC = () => { 
@@ -79,7 +79,7 @@ const QuestionPool: React.FC = () => {
                 <main className="grid grid-cols-12 gap-3">
                     <div className="grid grid-rows-12 col-span-6 gap-2 ">
                         <div className="row-span-11">
-                            <QuestionContainer questions={questions} answer={""}/>
+                            <QuestionContainer questions={testQuestions} answer={""}/>
                         </div>
                         <div className="flex justify-inbetween gap-4 row-span-1">
                             <button
@@ -97,9 +97,9 @@ const QuestionPool: React.FC = () => {
                         </div>
                     </div>
                     <div className="grid grid-rows-6 col-span-6">
-                        {/* <div className="grid">
-                            <div className="row-span-">
-                                <QuestionContainer questions={questions} answer={""}/>
+                        <div className="grid">
+                            <div className="row-span-11">
+                                <QuestionContainer questions={testQuestions} answer={""}/>
                             </div>
                             <div className="row-span-1">
                                 <button
@@ -109,7 +109,7 @@ const QuestionPool: React.FC = () => {
                                     Save
                                 </button>
                             </div>
-                        </div> */}
+                        </div>
                     </div>
                 </main>
             </div>
