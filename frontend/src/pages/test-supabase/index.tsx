@@ -1,17 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "../../components/Navbar";
 import styles from "./testsupabase.module.css";
+import Layout from "@/components/layout";
+import { Student } from "@/types/student";
 
 export default function TestSupabase() {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState([]);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   //handle function:
-  const fetchSelectedStudent = async (studentId) => {
+  const fetchSelectedStudent = async (studentId: any) => {
     try {
       const res = await fetch(`/api/student/${studentId}`);
       const data = await res.json();
@@ -23,7 +24,7 @@ export default function TestSupabase() {
     }
   };
 
-  const fetchSelectedAnswer = async (quesId) => {
+  const fetchSelectedAnswer = async (quesId: any) => {
     try {
       const res = await fetch(`/api/answer/${quesId}`);
       const data = await res.json();
@@ -40,7 +41,7 @@ export default function TestSupabase() {
       try {
         const res = await fetch("/api/students");
         const data = await res.json();
-        setStudents(data.data); //filled with array response
+        setStudents(data?.data as Student[]); //filled with array response
       } catch (error) {
         setError("Error fetching students");
       }
@@ -59,33 +60,32 @@ export default function TestSupabase() {
   }, []);
 
   return (
-    <div>
-      <Navbar />
-      <h1>Testing the retrieval of supabase tables</h1>
-      {error ? (
-        <div className={styles.error}>{error}</div>
-      ) : (
-        <>
-          <AddStudentForm setStudents={setStudents} setError={setError} />
-          <StudentsTable students={students} />
-          <SelectedStudent
-            students={students}
-            onSelectStudent={fetchSelectedStudent}
-            selectedStudent={selectedStudent}
-          />
-          <AnswerTable answers={answers} />
-          <SelectedAnswer
-            answers={answers}
-            onSelectAnswer={fetchSelectedAnswer}
-            selectedAnswer={selectedAnswer}
-          />
-        </>
-      )}
-    </div>
+      <div>
+        <h1>Testing the retrieval of supabase tables</h1>
+        {error ? (
+          <div className={styles.error}>{error}</div>
+        ) : (
+          <>
+            <AddStudentForm setStudents={setStudents} setError={setError} />
+            <StudentsTable students={students} />
+            <SelectedStudent
+              students={students}
+              onSelectStudent={fetchSelectedStudent}
+              selectedStudent={selectedStudent}
+            />
+            <AnswerTable answers={answers} />
+            <SelectedAnswer
+              answers={answers}
+              onSelectAnswer={fetchSelectedAnswer}
+              selectedAnswer={selectedAnswer}
+            />
+          </>
+        )}
+      </div>
   );
 }
 
-function StudentsTable({ students }) {
+function StudentsTable( students: any ) {
   if (!students.length) return <p>No students found.</p>;
   return (
     <>
@@ -100,7 +100,7 @@ function StudentsTable({ students }) {
           </tr>
         </thead>
         <tbody>
-          {students.map((stu) => (
+          {students.map((stu: any) => (
             <tr key={stu.Studentid}>
               <td>{stu.Studentid}</td>
               <td>{stu.name}</td>
@@ -114,9 +114,15 @@ function StudentsTable({ students }) {
   );
 }
 
-function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
+interface SelectedStudentProps{
+  students: any,
+  onSelectStudent: (id: any) => void,
+  selectedStudent: any,
+}
+
+function SelectedStudent({ students, onSelectStudent, selectedStudent } : SelectedStudentProps) {
   //func called onselect to set selected student oonly if student.id is set
-  const handleSelectChange = (e) => {
+  const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     if (selectedId) {
       onSelectStudent(selectedId);
@@ -132,7 +138,7 @@ function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
         onChange={handleSelectChange}
       >
         <option value="">Select a student</option>
-        {students.map((student) => (
+        {students.map((student: any) => (
           <option key={student.Studentid} value={student.Studentid}>
             {student.name}
           </option>
@@ -159,7 +165,11 @@ function SelectedStudent({ students, onSelectStudent, selectedStudent }) {
   );
 }
 
-function AnswerTable({ answers }) {
+interface AnswerTableProps {
+  answers: any,
+}
+
+function AnswerTable({ answers }:AnswerTableProps) {
   if (!answers.length) return <p>No answers found.</p>;
   return (
     <>
@@ -173,7 +183,7 @@ function AnswerTable({ answers }) {
           </tr>
         </thead>
         <tbody>
-          {answers.map((ans) => (
+          {answers.map((ans: any) => (
             <tr key={ans.Studentid}>
               <td>{ans.AnswerID}</td>
               <td>{ans.QuestionID}</td>
@@ -186,8 +196,14 @@ function AnswerTable({ answers }) {
   );
 }
 
-function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
-  const handleSelectChange = (e) => {
+interface SelectedAnswerProps { 
+  answers: any, 
+  onSelectAnswer: (id:any) => void, 
+  selectedAnswer: any,
+}
+
+function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }: SelectedAnswerProps) {
+  const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     if (selectedId) {
       onSelectAnswer(selectedId);
@@ -205,7 +221,7 @@ function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
         <option value="">
           Select a question you would like to see the answer
         </option>
-        {answers.map((ans) => (
+        {answers.map((ans: any) => (
           <option key={ans.QuestionID} value={ans.QuestionID}>
             Question id: {ans.QuestionID}
           </option>
@@ -223,12 +239,17 @@ function SelectedAnswer({ answers, onSelectAnswer, selectedAnswer }) {
   );
 }
 
-function AddStudentForm({ setStudents, setError }) {
+interface AddStudentFormProps {
+  setStudents : (student: any) => void,
+  setError : (error: any) => void, 
+}
+
+function AddStudentForm({ setStudents, setError } : AddStudentFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [classId, setClassId] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
       const res = await fetch("/api/studentpost", {
@@ -241,7 +262,7 @@ function AddStudentForm({ setStudents, setError }) {
       const data = await res.json();
       if (res.ok) {
         // Update the students list
-        setStudents((prevStudents) => [...prevStudents, data.student]);
+        setStudents((prevStudents: any) => [...prevStudents, data.student]);
         // Clear the form
         setName("");
         setEmail("");
@@ -255,7 +276,7 @@ function AddStudentForm({ setStudents, setError }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="">
+    <form onSubmit={handleSubmit}>
       <h2>Add New Student</h2>
       <input
         value={name}
