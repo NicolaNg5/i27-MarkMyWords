@@ -10,7 +10,8 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import json
 import os
-
+from datetime import date
+from datetime import datetime
 app = FastAPI()
 
 #Supabase Credentials:
@@ -343,6 +344,49 @@ def create_student(student:StudentSchema):
         if "foreign key constraint" in str(e).lower():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Class with ID {student.class_id} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+#Create assessment:
+class AssessmentSchema(BaseModel):
+    title: str
+    topic: str
+    class_id: str
+    due_date: str
+    reading_file_name: str
+
+
+@app.post("/assessment/", status_code=status.HTTP_201_CREATED)
+def create_assessment(assessment: AssessmentSchema):
+    # Generate uuid for assessmentid
+    assessment_id = str(uuid.uuid4())
+
+    # Convert due_date string to datetime object
+    due_date = datetime.strptime(assessment.due_date, '%m/%d/%Y')
+
+    # Prepare data
+    new_assessment = {
+        "Assessmentid": assessment_id,
+        "Title": assessment.title,
+        "Topic": assessment.topic,
+        "Class": assessment.class_id,
+        "dueDate": due_date.strftime('%m/%d/%Y'),
+        "ReadingFileName": assessment.reading_file_name
+    }
+
+    try:
+        # Insert new assessment into Supabase
+        result = supabase.table("Assessment").insert(new_assessment).execute()
+        # Check insertion
+        if result.data:
+            return {"message": "Assessment created successfully", "assessment": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create assessment")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Class with ID {assessment.class_id} does not exist")
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:
