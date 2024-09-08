@@ -391,3 +391,46 @@ def create_assessment(assessment: AssessmentSchema):
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    # Create Assessment Result
+class ResultSchema(BaseModel):
+    assessmentID: str
+    studentID: str
+    analysis: str
+    marks: int
+
+@app.post("/assessmentResults/", status_code=status.HTTP_201_CREATED)
+def create_assessmentResult(result: ResultSchema):
+    result_id = str(uuid.uuid4())
+    new_result = {
+        "ResultID": result_id,
+        "AssessmentID": result.assessmentID,
+        "StudentID": result.studentID,
+        "Analysis": result.analysis,
+        "Marks": result.marks
+    }
+    try:
+        result = supabase.table("AssessmentResults").insert(new_result).execute()
+        if result.data:
+            return {"message": "Result created successfully", "result": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create result")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Create Class
+
+@app.post("/class/", status_code=status.HTTP_201_CREATED)
+def create_class():
+    class_id = str(uuid.uuid4())
+    new_class = {
+        "ClassNumber": class_id,
+    }
+    try:
+        result = supabase.table("Class").insert(new_class).execute()
+        if result.data:
+            return {"message": "Class created successfully", "class": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create class")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
