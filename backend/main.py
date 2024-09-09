@@ -12,6 +12,7 @@ import json
 import os
 from datetime import date
 from datetime import datetime
+from enum import Enum
 app = FastAPI()
 
 #Supabase Credentials:
@@ -460,3 +461,108 @@ def create_class():
             raise HTTPException(status_code=500, detail="Failed to create class")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+#Create StudentAnswer
+class StudentAnswerSchema(BaseModel):
+    question_id: str
+    student_id: str
+    answer: str
+@app.post("/student_answer/", status_code=status.HTTP_201_CREATED)
+def create_student_answer(student_answer: StudentAnswerSchema):
+    # Generate UUID for AnswerID
+    answer_id = str(uuid.uuid4())
+    
+    #Prepare data
+    new_student_answer = {
+        "AnswerID": answer_id,
+        "QuestionID": student_answer.question_id,
+        "StudentID": student_answer.student_id,
+        "Answer": student_answer.answer
+    }
+    
+    try:
+        # Insert new student answer into Supabase
+        result = supabase.table("StudentAnswer").insert(new_student_answer).execute()
+    # Check insertion
+        if result.data:
+            return {"message": "Student answer created successfully", "student_answer": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create student answer")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            if "questionid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Question with ID {student_answer.question_id} does not exist")
+            elif "studentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Student with ID {student_answer.student_id} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+#Create skill
+class SkillImportance(str, Enum):
+    HIGH = "High"
+    NORMAL = "Normal"
+    LOW = "Low"
+
+class SkillSchema(BaseModel):
+    name: str
+    importance: SkillImportance
+
+@app.post("/skill/", status_code=status.HTTP_201_CREATED)
+def create_skill(skill: SkillSchema):
+    # Generate UUID for skillid
+    skill_id = str(uuid.uuid4())
+
+    # Prepare data
+    new_skill = {
+        "skillid": skill_id,
+        "name": skill.name,
+        "importance": skill.importance.value
+    }
+
+    try:
+        # Insert new skill into Supabase
+        result = supabase.table("skill").insert(new_skill).execute()
+
+        # Check insertion
+        if result.data:
+            return {"message": "Skill created successfully", "skill": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create skill")
+    except APIError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+#Create question  skill
+class QuestionSkillSchema(BaseModel):
+    question_id: str
+    skill_id: str
+@app.post("/question_skill/", status_code=status.HTTP_201_CREATED)
+def create_question_skill(question_skill: QuestionSkillSchema):
+    # Prepare data
+    new_question_skill = {
+        "QuestionID": question_skill.question_id,
+        "SkillID": question_skill.skill_id
+    }
+
+    try:
+        # Insert new question skill into Supabase
+        result = supabase.table("QuestionSkill").insert(new_question_skill).execute()
+
+        # Check insertion
+        if result.data:
+            return {"message": "Question skill created successfully", "question_skill": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create question skill")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            if "questionid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Question with ID {question_skill.question_id} does not exist")
+            elif "skillid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Skill with ID {question_skill.skill_id} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
