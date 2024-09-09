@@ -364,7 +364,7 @@ def create_assessment(assessment: AssessmentSchema):
     assessment_id = str(uuid.uuid4())
 
     # Convert due_date string to datetime object
-    due_date = datetime.strptime(assessment.due_date, '%m/%d/%Y')
+    due_date = datetime.strptime(assessment.due_date, '%Y-%m-%d')
 
     # Prepare data
     new_assessment = {
@@ -372,7 +372,7 @@ def create_assessment(assessment: AssessmentSchema):
         "Title": assessment.title,
         "Topic": assessment.topic,
         "Class": assessment.class_id,
-        "dueDate": due_date.strftime('%m/%d/%Y'),
+        "dueDate": due_date.strftime('%Y-%m-%d'),
         "ReadingFileName": assessment.reading_file_name
     }
 
@@ -392,7 +392,34 @@ def create_assessment(assessment: AssessmentSchema):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-    # Create Assessment Result
+#Retrieve file content from assessmentId
+@app.get("/assessment/{assessment_id}/file")
+def get_assessment_file_content(assessment_id:str):
+    try:
+        #retrieve assessment based on assessment_id from supa
+        assessment = supabase.table("Assessment").select("*").eq("Assessmentid", assessment_id).execute()
+        if not assessment.data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+        #retrieve file name from table
+        reading_file_name = assessment.data[0]['ReadingFileName']
+        
+        #creaate file path:
+        file_path = os.path.join("uploads", reading_file_name)
+        
+        #Check if the file exists
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        
+        #Retrieve file content:
+        with open(file_path, "r", encoding="utf-8") as f:
+            file_content = f.read()
+        
+        return {"file_content": file_content}
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+# Create Assessment Result
 class ResultSchema(BaseModel):
     assessmentID: str
     studentID: str
@@ -419,7 +446,6 @@ def create_assessmentResult(result: ResultSchema):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Create Class
-
 @app.post("/class/", status_code=status.HTTP_201_CREATED)
 def create_class():
     class_id = str(uuid.uuid4())
