@@ -21,7 +21,7 @@ export default function AssignmentPage() {
     } catch (error) {
       setError("Error fetching assessments");
     }
-  };;
+  };
 
   // Fetch assignments on component mount
   useEffect(() => {

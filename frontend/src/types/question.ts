@@ -5,11 +5,16 @@ export enum QuestionType {
    ShortAnswer = "SA",
 }
 
+export enum QuestionCategory {
+    Literal = "Literal",
+    Inferential = "Inferential",
+}
 export interface Question {
-    id: string,
-    assessmentID?: string,
-    question: string,
-    category?: string,
-    type: QuestionType,
-    options?: string[],
+    QuestionID: string,
+    AssessmentID?: string,
+    Question: string,
+    Category?: QuestionCategory,
+    Type: QuestionType,
+    Options?: string[],
+    Answer?: string,
 }
