@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from unittest.mock import patch
 import uuid
 from main import app  # Ensure 'main' is the correct import
-# from backend.main import app
 
 client = TestClient(app)
 
@@ -40,7 +39,7 @@ class TestAPI(BaseTestAPI):
 
     @patch('main.supabase.table')
     def test_get_student(self, mock_table):
-        test_uuid = uuid.uuid4()
+        test_uuid = "067207b7-eb56-4e06-978f-d6a419e6ca20"
         mock_data = [{"Studentid": str(test_uuid), "name": "Student4", "email": "student4@gmail.com"}]
         expected_response = self.mock_supabase_response(mock_table, mock_data)
 
@@ -81,9 +80,48 @@ class TestAPI(BaseTestAPI):
         response = self.make_get_request("/skills")
         self.assert_response(response, expected_response)
 
+# get skills by ID --> not working need to be fixed
     @patch('main.supabase.table')
     def test_get_skill(self, mock_table):
         test_uuid = uuid.uuid4()
+        mock_data = [{"skillid": str(test_uuid), "name": "Skill 1", "importance": "High"}]
+        expected_response = self.mock_supabase_response(mock_table, mock_data)
+
+        response = self.make_get_request(f"/skill/{test_uuid}")
+        self.assert_response(response, expected_response)
+
+    # Adding the test for /questionskills endpoint
+    @patch('main.supabase.table')
+    def test_get_questionskills(self, mock_table):
+        mock_data = [
+            {
+                "QuestionID": "5c4c331b-f7cc-4b16-be71-00647ae1e403",
+                "SkillID": "d9c7e6a9-6cfe-4d57-828e-0d6b5afc6f63"
+            }
+        ]
+        expected_response = {
+            "data": mock_data,
+            "count": None
+        }
+        # Mock the Supabase table response
+        mock_table.return_value.select.return_value.execute.return_value = {
+            "data": mock_data,
+            "count": None
+        }
+        # Make the GET request to the "/questionskills" endpoint
+        response = self.make_get_request("/questionskills")
+
+        # Assert that the response status code is 200
+        self.assertEqual(response.status_code, 200)
+
+        # Assert that the response matches the expected JSON structure
+        self.assert_response(response, expected_response)
+
+# not working yet
+    @patch('main.supabase.table')
+    def test_get_questionskills_by_id(self, mock_table):
+        test_uuid = uuid.uuid4()
+    
         mock_data = [{"skillid": str(test_uuid), "name": "Skill 1", "importance": "High"}]
         expected_response = self.mock_supabase_response(mock_table, mock_data)
 
