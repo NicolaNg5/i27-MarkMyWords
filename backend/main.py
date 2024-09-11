@@ -278,39 +278,39 @@ def get_qnsk(id:UUID):
     return qnsk
 
 #Get all answers
-@app.get("/answers")
+@app.get("/studentanswers")
 def get_answers():
-    answers = supabase.table("Answer").select("*").execute()
+    answers = supabase.table("StudentAnswer").select("*").execute()
     return answers
 
 #Get answer based on answer id
-@app.get("/answerid/{answerid}")
+@app.get("/studentanswerid/{answerid}")
 def get_answer_answerid(answerid:UUID):
-    answer = supabase.table("Answer").select("*").eq("AnswerID",answerid).execute()
+    answer = supabase.table("StudentAnswer").select("*").eq("AnswerID",answerid).execute()
     return answer
 
 #Get answer based on question id
 @app.get("/answerquesid/{questionid}")
 def get_answer_questionid(questionid:UUID):
-    answer = supabase.table("Answer").select("*").eq("QuestionID",questionid).execute()
+    answer = supabase.table("Question").select("Answer").eq("QuestionID",questionid).execute()
     return answer
 
 #Get all results
 @app.get("/results")
 def get_results():
-    results = supabase.table("Results").select("*").execute()
+    results = supabase.table("AssessmentResults").select("*").execute()
     return results
 
 #Get result based on result id
 @app.get("/resultid/{id}")
 def get_result_resultid(id:UUID):
-    result = supabase.table("Results").select("*").eq("ResultID",id).execute()
+    result = supabase.table("AssessmentResults").select("*").eq("ResultID",id).execute()
     return result
 
 #Get result based on student id
 @app.get("/resultstudentid/{id}")
 def get_result_studentid(id:UUID):
-    result = supabase.table("Results").select("*").eq("StudentID",id).execute()
+    result = supabase.table("AssessmentResults").select("*").eq("StudentID",id).execute()
     return result
 
 #Create student
