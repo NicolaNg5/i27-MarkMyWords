@@ -36,20 +36,13 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string; selectedPr
 
   useEffect(() => {
     if (response) {
-      setQuestions(convertToJsonArray(response).map(question => ({ ...question, filename: fileName, category: getQuestionCategory(selectedPrompt)})));
+      setQuestions(convertToJsonArray(response).map(question => ({ ...question, filename: fileName, type: getQuestionCategory(selectedPrompt)})));
     }
   }, [response, fileName, selectedPrompt]); 
 
   function convertToJsonArray(plainText: string): Question[] {
-    let jsonString = plainText
-    /*plainText.replace(/\\"/g, '"');
-    jsonString = jsonString.replace(/'/g, '"');
-    jsonString = jsonString.replace(/([A-Za-z0-9])"([A-Za-z0-9])/g, "$1\\\"$2");
-    jsonString = jsonString.replace(/\\"/g, '\'');
-    */
-
-    console.log("jsonString:", jsonString);
-    let jsonArray = JSON.parse(jsonString);
+    console.log("jsonString:", plainText);
+    let jsonArray = JSON.parse(plainText);
     return jsonArray as Question[];
   }
 
@@ -110,7 +103,7 @@ const ChooseQuestions: React.FC<{ response: string; fileName: string; selectedPr
                 <p><strong>Correct Answer:</strong> {q.answer}</p>
               )}
               {q.type && (
-                <h4><u>{q.type} question</u></h4>
+                <h4><u>{q.category} question</u></h4>
               )}
             </li>
           </div>
