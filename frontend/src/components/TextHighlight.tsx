@@ -1,16 +1,21 @@
 "use client";
 import React, { useState, useRef } from 'react';
 
-const TextHighlight = ({ htmlContent, onHighlight }) => {
+interface highlightProps{
+  htmlContent: string
+  onHighlight: (highlightedText: string) => null;
+}
+
+const TextHighlight = ({ htmlContent, onHighlight } : highlightProps) => {
   const [highlightedText, setHighlightedText] = useState("");
   const highlightRef = useRef(null);
 
   const handleHighlight = () => {
-    const selection = window.getSelection();
-    const selectedText = selection.toString();
+    const selection: Selection | null = window.getSelection();
+    const selectedText = selection?.toString();
 
-    if (selectedText && highlightRef.current) {
-      const range = selection.getRangeAt(0);
+    if (selectedText && highlightRef.current && selection) {
+      const range : Range = selection.getRangeAt(0);
 
       const newRange = document.createRange();
       newRange.setStart(range.startContainer, range.startOffset);
@@ -31,7 +36,6 @@ const TextHighlight = ({ htmlContent, onHighlight }) => {
     <div 
       ref={highlightRef}
       onMouseUp={handleHighlight}
-      dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
 };

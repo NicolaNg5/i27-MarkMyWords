@@ -13,6 +13,7 @@ export default function Home() {
   const [fileName, setFileName] = useState("");
   const [highlightedText, setHighlightedText] = useState("");
 
+  //fetching prompts
   useEffect(() => {
     const fetchPrompts = async () => {
       try {
@@ -30,6 +31,7 @@ export default function Home() {
     setSelectedPrompt(event.target.value);
   };
 
+  //uploading file
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
@@ -69,7 +71,7 @@ export default function Home() {
 
       if (!res.ok) {
         throw new Error(`Error uploading file: ${res.status} ${res.statusText}`);
-      }else{
+      } else {
         alert("File uploaded successfully under the name: " + fileName + "!");
       }
 
@@ -82,7 +84,7 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleResponse = async (event) => {
     event.preventDefault();
     setError(null);
 
@@ -115,18 +117,16 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Model Prompting</h1>
+      <h1>Generating quiz questions from uploaded file</h1>
+      <input
+        type="text"
+        id="fileName"
+        value={fileName}
+        onChange={handleFileName}
+        placeholder="File Name"
+      />
       <input type="file" onChange={handleFileChange} />
       <br />
-      <div>
-        <label htmlFor="fileName">File Name:</label>
-        <input 
-          type="text" 
-          id="fileName" 
-          value={fileName} 
-          onChange={handleFileName} 
-        />
-      </div>
       <button onClick={handleUpload}>Upload File</button>
       <br />
       <select value={selectedPrompt} onChange={handlePromptChange}>
@@ -138,14 +138,13 @@ export default function Home() {
         ))}
       </select>
       <br />
-      <button onClick={handleSubmit}>Generate Response</button>
-      
-      {fileContent && ( 
+      <button onClick={handleResponse}>Generate Response</button>
+
+      {fileContent && (
         <div>
-          <h2>File Content:</h2>
-          <TextHighlight 
-            htmlContent={fileContent} 
-            onHighlight={handleHighlightedText} 
+          <TextHighlight
+            htmlContent={fileContent}
+            onHighlight={handleHighlightedText}
           />
         </div>
       )}
@@ -154,14 +153,16 @@ export default function Home() {
         <div>{error}</div>
       ) : response ? (
         <div>
-          <ChooseQuestions response={response.response} fileName={fileName} />
-          {highlightedText && (
+          <ChooseQuestions response={response.response} fileName={fileName} selectedPrompt={selectedPrompt} />
+          {/*{highlightedText && (
             <div>
               <strong>Highlighted Text:</strong> {highlightedText}
             </div>
           )}
+          */}
         </div>
       ) : null}
+
     </div>
   );
 }

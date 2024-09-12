@@ -47,16 +47,16 @@ def save_response(response_data, prompt_name):
         response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
     elif prompt_name == "10 Short Answers":
         file_path = "questions/shortAns.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "SA"}
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "MCQ"}
     elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
         file_path = "questions/cards.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "HL"}
 
     if file_path:
         try:
@@ -126,7 +126,11 @@ async def generate_response(request: Request):
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
 
-        response = model.generate_content(contents=[file_content, selected_prompt["content"]])
+        response = model.generate_content(contents=[file_content, selected_prompt["content"], 
+        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'type': 'literal/inferential'}, {...'answer': 'answer 2', 'type': 'literal/inferential'}"
+        ])
+        print("Raw Response Text:", response.text) 
+        
         response_text = response.text
 
         response_data = {
@@ -163,11 +167,23 @@ async def save_questions(request: Request):
 
         file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
 
-        with open(file_path, "a", encoding="utf-8") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(questions, f, indent=3)
 
         return {"message": "Questions saved successfully!"}
 
     except Exception as e:
         print("Error saving questions:", e)
+        return {"error": f"An error occurred: {str(e)}"}
+    
+@app.post("/submit_quiz")
+async def submit_quiz(request: Request):
+    try:
+        quiz_data = await request.json()
+        print("Quiz Data Received:", quiz_data)
+
+        return {"message": "Quiz received successfully!"}
+
+    except Exception as e:
+        print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}

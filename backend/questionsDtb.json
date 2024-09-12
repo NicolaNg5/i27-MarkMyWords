@@ -1,71 +1,47 @@
 [
    {
-      "question": "How many planets are officially recognized in our solar system?",
-      "option1": "7",
-      "option2": "8",
-      "option3": "9",
-      "option4": "10",
-      "correctOption": "Option B",
-      "filename": "The Solar System"
+      "question": "The grey bearded man represents wisdom and serenity.",
+      "option1": "Correct",
+      "option2": "Incorrect",
+      "answer": "Incorrect",
+      "type": "inferential",
+      "filename": "The Dumb Man",
+      "category": "FC"
    },
    {
-      "question": "What separates the inner and outer planets in our solar system?",
-      "option1": "Kuiper Belt",
-      "option2": "Oort Cloud",
-      "option3": "Asteroid Belt",
-      "option4": "Heliosphere",
-      "correctOption": "Option C",
-      "filename": "The Solar System"
+      "question": "The story primarily explores themes of love, loss, and the passage of time.",
+      "option1": "Correct",
+      "option2": "Incorrect",
+      "answer": "Correct",
+      "type": "inferential",
+      "filename": "The Dumb Man",
+      "category": "FC"
    },
    {
-      "question": "Approximately how many solar systems are estimated to exist in the universe?",
-      "option1": "50",
-      "option2": "500",
-      "option3": "5,000",
-      "option4": "5 million",
-      "correctOption": "Option B",
-      "filename": "The Solar System"
+      "question": "The fourth man\"s silence symbolizes his indifference towards the other characters\" anxieties.",
+      "option1": "Correct",
+      "option2": "Incorrect",
+      "answer": "Correct",
+      "type": "inferential",
+      "filename": "The Dumb Man",
+      "category": "FC"
    },
    {
-      "question": "Pluto is considered a planet in our solar system.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Solar System"
+      "question": "The story is set in a bustling city during the daytime.",
+      "option1": "Correct",
+      "option2": "Incorrect",
+      "answer": "Incorrect",
+      "type": "inferential",
+      "filename": "The Dumb Man",
+      "category": "FC"
    },
    {
-      "question": "The asteroid belt is located between Earth and Mars.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "Comets and dust are found in our solar system.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "True",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "The narrator believes that if he could understand the dandified man, he could understand the whole story. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "True",
-      "filename": "The Dumb Man"
-   },
-   {
-      "question": "The white silent man is explicitly identified as Death in the story. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Dumb Man"
-   },
-   {
-      "question": "The dandified man is troubled by the events in the house and cries frequently. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Dumb Man"
+      "question": "The woman in the story is described as being old and frail.",
+      "option1": "Correct",
+      "option2": "Incorrect",
+      "answer": "Incorrect",
+      "type": "literal",
+      "filename": "The Dumb Man",
+      "category": "FC"
    }
 ]
