@@ -13,6 +13,7 @@ import os
 from datetime import date
 from datetime import datetime
 from enum import Enum
+from typing import List
 app = FastAPI()
 
 #Supabase Credentials:
@@ -216,18 +217,6 @@ def get_classes():
 def get_class(id:UUID):
     specificClass = supabase.table("Class").select("*").eq("ClassNumber",id).execute()
     return specificClass
-
-#Get all reading material
-@app.get("/readingmaterials")
-def get_reading_materials():
-    reading_materials = supabase.table("ReadingMaterial").select("*").execute()
-    return reading_materials
-
-#Get specfic reading material based on UUID
-@app.get("/readingmaterial/{id}")
-def get_reading_material(id:UUID):
-    reading_material = supabase.table("ReadingMaterial").select("*").eq("MaterialId",id).execute()
-    return reading_material
 
 #Get all assessments
 @app.get("/assessments")
@@ -562,6 +551,60 @@ def create_question_skill(question_skill: QuestionSkillSchema):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Question with ID {question_skill.question_id} does not exist")
             elif "skillid" in str(e).lower():
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Skill with ID {question_skill.skill_id} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+#Create questions
+class QuestionType(str, Enum):
+    MCQ = "MCQ"
+    FC = "FC"
+    HL = "HL"
+    SA = "SA"
+
+class Category(str, Enum):
+    LITERAL = "Literal"
+    INFERENTIAL = "Inferential"
+    
+class QuestionSchema(BaseModel):
+    AssessmentID: str
+    Question: str
+    Category: Category
+    Type: QuestionType
+    Options: List[str]
+    Answer: str
+
+@app.post("/question/", status_code=status.HTTP_201_CREATED)
+def create_question(question: QuestionSchema):
+    # Generate UUID for QuestionID
+    question_id = str(uuid.uuid4())
+
+    # Prepare data
+    new_question = {
+        "QuestionID": question_id,
+        "AssessmentID": question.AssessmentID,
+        "Question": question.Question,
+        "Category": question.Category.value,
+        "Type": question.Type.value,
+        "Options": question.Options,
+        "Answer": question.Answer
+    }
+
+    try:
+        # Insert new question into Supabase
+        result = supabase.table("Question").insert(new_question).execute()
+        # Check insertion
+        if result.data:
+            return {"message": "Question created successfully", "question": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create question")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            if "assessmentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Assessment with ID {question.AssessmentID} does not exist")
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Foreign key constraint failed")
         else:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:

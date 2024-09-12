@@ -1,4 +1,4 @@
 export interface QuestionSkill {
-    questionID: string,
-    skillID: string
+  QuestionID: string;
+  SkillID: string;
 }
