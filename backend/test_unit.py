@@ -1,4 +1,6 @@
+from unittest.mock import patch, mock_open
 import unittest
+import os
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 import uuid
@@ -128,5 +130,35 @@ class TestAPI(BaseTestAPI):
         response = self.make_get_request(f"/skill/{test_uuid}")
         self.assert_response(response, expected_response)
 
+    @patch('main.supabase.table')
+    @patch('os.path.exists')
+    @patch('builtins.open', new_callable=mock_open, read_data='This is the content of The Dumb Man.')
+    def test_get_assessment_file_content(self, mock_open_file, mock_exists, mock_table):
+        # The actual assessment ID and file to test
+        assessment_id = "a3f97168-a785-496c-8631-cc03af6b4ddc"
+        file_name = "The Dumb Man.txt"
+
+        # Mocking Supabase response to return the Assessment with the ReadingFileName
+        mock_data = [{"Assessmentid": assessment_id, "ReadingFileName": file_name}]
+        mock_table.return_value.select.return_value.eq.return_value.execute.return_value = {
+            "data": mock_data
+        }
+
+        # Mock the os.path.exists to return True (simulate that the file exists in the correct path)
+        mock_exists.return_value = True
+
+        # Make the GET request to the "/assessment/{assessment_id}/file" endpoint
+        response = self.make_get_request(f"/assessment/{assessment_id}/file")
+
+        # Assert the response is 200 and contains the correct file content
+        expected_response = {"file_content": "This is the content of The Dumb Man."}
+        self.assert_response(response, expected_response)
+
+        # Check if the file path was correctly used (ensure it's under "backend/uploads")
+        mock_open_file.assert_called_with(os.path.join("backend", "uploads", file_name), "r", encoding="utf-8")
+
 if __name__ == '__main__':
     unittest.main()
+
+
+
