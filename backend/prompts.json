@@ -1,30 +1,30 @@
 {
   "prompt1": {
     "name": "Analyse Reading Material",
-    "content": "Analyse this reading material and provide the analysis in JSON format: {'analysis': '<your_analysis_here>'}"
+    "content": "Analyse this reading material and provide the analysis in JSON-like format: {\"analysis\": \"<your_analysis_here>\"}"
   },
   "prompt2": {
     "name": "10 Short Answers",
-    "content": "Create 10 short-answer questions from this reading material. Output each question as plain text but with a JSON format with the key 'question', like this: [{'question': 'Question 1'}, {'question': 'Question 2'}, ...]. Start with '['" 
+    "content": "Create 10 short-answer questions from this reading material, each with a corresponding answer. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\" and \"answer\", like this: [{\"question\": \"Question 1\", \"answer\": \"Answer 1\"}, {\"question\": \"Question 2\", \"answer\": \"Answer 2\"}, ...]."
   },
   "prompt3": {
     "name": "10 Multiple Choices",
-    "content": "Create 10 multiple-choice questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', 'option3', 'option4', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Option A', 'option2': 'Option B', 'option3': 'Option C', 'option4': 'Option D', 'correctOption': 'Option B'}, ...]. Start with '['"
+    "content": "Create 10 multiple-choice questions from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", \"option3\", \"option4\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Option A\", \"option2\": \"Option B\", \"option3\": \"Option C\", \"option4\": \"Option D\", \"answer\": \"Option B\"}, {\"question\": \"Question 2\", \"option1\": \"Option E\", \"option2\": \"Option F\", \"option3\": \"Option G\", \"option4\": \"Option H\", \"answer\": \"Option E\"},...]."
   },
   "prompt4": {
     "name": "10 True/False",
-    "content": "Create 10 true/false questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'True', 'option2': 'False', 'correctOption': 'True'}, ...]. Start with '['"
+    "content": "Create 10 True/False questions with two options called \"True\" or \"False\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"True\", \"option2\": \"False\", \"answer\": \"True\"}, {\"question\": \"Question 2\", \"option1\": \"True\", \"option2\": \"False\", \"answer\": \"False\"},...]."
   },
   "prompt5": {
     "name": "10 Agree/Disagree",
-    "content": "Create 10 agree/disagree questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Agree', 'option2': 'Disagree', 'correctOption': 'Agree'}, ...]. Start with '['"
+    "content": "Create 10 Agree/Disagree questions with two options called \"Agree\" or \"Disagree\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Agree\", \"option2\": \"Disagree\", \"answer\": \"Agree\"}, {\"question\": \"Question 2\", \"option1\": \"Agree\", \"option2\": \"Disagree\", \"answer\": \"Disagree\"},...]."
   },
   "prompt6": {
     "name": "10 Correct/Incorrect",
-    "content": "Create 10 correct/incorrect questions from this reading material. Output each question as plain text but with a JSON format with the keys 'question', 'option1', 'option2', and 'correctOption', like this: [{'question': 'Question 1', 'option1': 'Correct', 'option2': 'Incorrect', 'correctOption': 'Correct'}, ...]. Start with '['"
+    "content": "Create 10 Correct/Incorrect questions with two options called \"Correct\" or \"Incorrect\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Correct\", \"option2\": \"Incorrect\", \"answer\": \"Correct\"}, {\"question\": \"Question 2\", \"option1\": \"Correct\", \"option2\": \"Incorrect\", \"answer\": \"Incorrect\"},...]. Denote single quote with single a backward slash before it; and double quote with three backward slashes before it."
   },
   "prompt7": {
     "name": "10 Highlight",
-    "content": "Create 10 questions from this reading material, each starting with 'Please highlight in the paragraph: ' and output each question as plain text but with a JSON format with the key 'question', like this: [{'question': 'Please highlight in the paragraph: Question 1'}, ...]. Start with '['" 
+    "content": "Create 10 questions from this reading material, each with a suggested answer (the answer must be quoted directly from the text content). Start the texting with \"Please highlight in the paragraph: \" and output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\" and \"answer\", like this: [{\"question\": \"Please highlight in the paragraph: Question 1\", \"answer\": \"Answer 1\"}, ...]."
   }
 }
