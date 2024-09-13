@@ -1,3 +1,3 @@
 export interface Class {
-    id: string
+  ClassNumber: string;
 }

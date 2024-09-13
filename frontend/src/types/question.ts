@@ -1,8 +1,8 @@
 export enum QuestionType {
-   MultipleChoice = "MCQ",
-   FlashCard = "FC",
-   Highlighting =  "HL",
-   ShortAnswer = "SA",
+  MultipleChoice = "MCQ",
+  FlashCard = "FC",
+  Highlighting = "HL",
+  ShortAnswer = "SA",
 }
 
 export enum QuestionCategory {
@@ -10,11 +10,11 @@ export enum QuestionCategory {
     Inferential = "Inferential",
 }
 export interface Question {
-    QuestionID: string,
-    AssessmentID?: string,
-    Question: string,
-    Category?: QuestionCategory,
-    Type: QuestionType,
-    Options?: string[],
-    Answer?: string,
+    QuestionID: string;
+    AssessmentID?: string;
+    Question: string;
+    Category?: QuestionCategory;
+    Type: QuestionType;
+    Options?: string[];
+    Answer?: string;
 }
