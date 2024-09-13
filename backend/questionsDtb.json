@@ -1,71 +1,18 @@
 [
    {
-      "question": "How many planets are officially recognized in our solar system?",
-      "option1": "7",
-      "option2": "8",
-      "option3": "9",
-      "option4": "10",
-      "correctOption": "Option B",
-      "filename": "The Solar System"
+      "question": "Please highlight in the paragraph: How does the narrator describe the house's atmosphere when the fourth man arrives?",
+      "answer": "Everything was as silent as the sea at night.",
+      "category": "literal",
+      "filename": "The Dumb Man",
+      "type": "HL",
+      "assessmentID": "a3f97168-a785-496c-8631-cc03af6b4ddc"
    },
    {
-      "question": "What separates the inner and outer planets in our solar system?",
-      "option1": "Kuiper Belt",
-      "option2": "Oort Cloud",
-      "option3": "Asteroid Belt",
-      "option4": "Heliosphere",
-      "correctOption": "Option C",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "Approximately how many solar systems are estimated to exist in the universe?",
-      "option1": "50",
-      "option2": "500",
-      "option3": "5,000",
-      "option4": "5 million",
-      "correctOption": "Option B",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "Pluto is considered a planet in our solar system.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "The asteroid belt is located between Earth and Mars.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "Comets and dust are found in our solar system.",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "True",
-      "filename": "The Solar System"
-   },
-   {
-      "question": "The narrator believes that if he could understand the dandified man, he could understand the whole story. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "True",
-      "filename": "The Dumb Man"
-   },
-   {
-      "question": "The white silent man is explicitly identified as Death in the story. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Dumb Man"
-   },
-   {
-      "question": "The dandified man is troubled by the events in the house and cries frequently. Is this statement true or false?",
-      "option1": "True",
-      "option2": "False",
-      "correctOption": "False",
-      "filename": "The Dumb Man"
+      "question": "Please highlight in the paragraph: Who does the narrator speculate the waiting woman might be?",
+      "answer": "The waiting eager woman may have been Life.",
+      "category": "inferential",
+      "filename": "The Dumb Man",
+      "type": "HL",
+      "assessmentID": "a3f97168-a785-496c-8631-cc03af6b4ddc"
    }
 ]

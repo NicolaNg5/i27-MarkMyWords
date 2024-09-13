@@ -63,16 +63,16 @@ def save_response(response_data, prompt_name):
         response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
     elif prompt_name == "10 Short Answers":
         file_path = "questions/shortAns.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "SA"}
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "MCQ"}
     elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
         file_path = "questions/cards.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "HL"}
 
     if file_path:
         try:
@@ -102,10 +102,10 @@ async def upload_file(request: Request):
     print("Backend - Receiving File Content...")
     try:
         body_text = (await request.body()).decode("utf-8")
-        file_name, file_content = body_text.split("\n", 1)
+        file_name, file_content = body_text.split("\n", 1)  
 
         uploaded_file = file_name
-
+        
         print("File Content:", file_content)
         print("File Name:", file_name)
 
@@ -113,7 +113,7 @@ async def upload_file(request: Request):
             return {"error": "No file content received"}
 
         file_path = os.path.join("uploads", file_name)
-        with open(file_path, "w", encoding="utf-8") as f:
+        with open(file_path, "w", encoding="utf-8") as f: 
             f.write(file_content)
         print(f"File saved to: {file_path}")
 
@@ -125,7 +125,7 @@ async def upload_file(request: Request):
 
 @app.post("/generate")
 async def generate_response(request: Request):
-    global uploaded_file
+    global uploaded_file 
     print("Backend - Generating Response...")
     try:
         prompt_key = (await request.body()).decode("utf-8")
@@ -144,7 +144,11 @@ async def generate_response(request: Request):
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
 
-        response = model.generate_content(contents=[file_content, selected_prompt["content"]])
+        response = model.generate_content(contents=[file_content, selected_prompt["content"], 
+        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
+        ])
+        print("Raw Response Text:", response.text) 
+        
         response_text = response.text
 
         response_data = {
@@ -153,41 +157,89 @@ async def generate_response(request: Request):
             "file_name": uploaded_file,
         }
 
-        save_response(response_data, prompt_key)
+        save_response(response_data, prompt_key) 
 
         return {"response": response_text}
     except Exception as e:
         print("Backend - General Error:", e)
-        return {"error": f"An error occurred: {str(e)}"}
-
-@app.post("/save_questions")
+        return {"error": f"An error occurred: {str(e)}"} 
+    
+@app.post("/save_questions", status_code=status.HTTP_201_CREATED)
 async def save_questions(request: Request):
-    """
-    Saves the selected questions to a JSON file.
-    Modify to save into the actual database.
-    For Tom and Nicola.
-    """
+    """ Saves the selected questions to a JSON file and then to the Supabase database. """
     try:
         questions_text = (await request.body()).decode("utf-8")
-
         print("Backend - Received Questions Text:", questions_text)
 
         questions = json.loads(questions_text)
-
         if not questions:
             return {"error": "No questions received"}
 
         print("Backend - Parsed Questions:", questions)
 
+        # Save questions to local JSON file
         file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
-
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(questions, f, indent=3)
 
+        # Save questions to Supabase database
+        for question in questions:
+            options = [
+                question.get("option1", ""),
+                question.get("option2", ""),
+                question.get("option3", ""),
+                question.get("option4", ""),
+            ]
+            # Remove empty strings from the options list
+            options = [option for option in options if option]
+
+            new_question = {
+                "QuestionID": str(uuid.uuid4()),
+                "AssessmentID": question.get("assessmentID", None),
+                "Question": question["question"],
+                "Category": question.get("category", None),
+                "Type": question["type"],
+                "Options": options,
+                "Answer": question["answer"],
+            }
+
+            # Check if the question already exists
+            existing_question = supabase.table("Question").select("*").eq("Question", new_question["Question"]).execute()
+            if existing_question.data:
+                print(f"Question '{new_question['Question']}' already exists, skipping...")
+                continue
+
+            # Insert new question into Supabase
+            try:
+                result = supabase.table("Question").insert(new_question).execute()
+                if not result.data:
+                    raise HTTPException(status_code=500, detail="Failed to create question")
+            except APIError as e:
+                if "foreign key constraint" in str(e).lower():
+                    if "assessmentid" in str(e).lower():
+                        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Assessment with ID {question.get('assessmentID', None)} does not exist")
+                    else:
+                        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Foreign key constraint failed")
+                else:
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+            except Exception as e:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
         return {"message": "Questions saved successfully!"}
+    except Exception as e:
+        print(f"Error saving questions: {e}")
+        return {"error": f"An error occurred: {str(e)}"}
+    
+@app.post("/submit_quiz")
+async def submit_quiz(request: Request):
+    try:
+        quiz_data = await request.json()
+        print("Quiz Data Received:", quiz_data)
+
+        return {"message": "Quiz received successfully!"}
 
     except Exception as e:
-        print("Error saving questions:", e)
+        print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
 
 #--------------------------------------------------------------------------------------#
