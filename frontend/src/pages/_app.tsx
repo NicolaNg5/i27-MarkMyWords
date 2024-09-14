@@ -19,7 +19,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page)
  
   return (
-    <>
+    <div>
       <Head>
         <title>MarkMyWords</title>
         <link rel="shortcut icon" href="/favicon.ico" />
@@ -28,11 +28,11 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <SideBar />
           <div className="flex-1 flex flex-col">
             <Header />
-            <main className="p-8">
+            <main className="p-4">
               {getLayout(<Component {...pageProps} />)}
             </main>
           </div>
         </div>
-    </>
+    </div>
   )
 }

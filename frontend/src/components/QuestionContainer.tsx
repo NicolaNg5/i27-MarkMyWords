@@ -29,7 +29,7 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
 
     return (
         <>
-            <div className='overflow-y-auto grid row-span-6 border border-primary bg-white p-1 pt-0' style={{ height: "700px" }}>
+            <div className='overflow-y-auto grid row-span-6 border border-primary bg-white p-1 pt-0' style={{ height: "650px" }}>
                 <ul className="mt-2">
                     {questions?.map((question) => {
                         const typeColor = 
@@ -39,12 +39,12 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                             "bg-red-400";
                         return (
                             <li key={question.QuestionID} className="flex items-center justify-between py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md">
-                                <div className="grid grid-row-2 flex-grow cursor-pointer " onClick={() => handleRowClick(question.QuestionID)}>
+                                <div className="grid grid-row-2 flex-grow cursor-pointer max-h-xs" onClick={() => handleRowClick(question.QuestionID)}>
                                     <div className="row-span-1 flex items-inline">
-                                        <div className={`${typeColor} text-center text-white text-md rounded px-3 py-1`} style={{width: "60px"}}>
+                                        <div className={`${typeColor} text-center text-white text-md rounded px-2 py-2`} style={{minWidth: "3vw", maxHeight:"5vw"}}>
                                             {question.Type}
                                         </div>
-                                        <div className="flex justify-between px-4 text-lg">
+                                        <div className={`flex items-center justify-between px-4 text-md`}>
                                             <span >{question.Question}</span>
                                         </div>
                                     </div>

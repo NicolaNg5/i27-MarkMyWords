@@ -32,7 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({basePath, students, assessment}: D
 
     return (
         <>
-            <div className="grid grid-cols-12 gap-3 text-white">
+            <div className="grid grid-cols-12 gap-12 text-white">
                 <div className="grid col-span-3 gap-2 ">
                     <Card
                         title="View Reading Material"

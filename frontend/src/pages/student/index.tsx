@@ -24,37 +24,37 @@ const AssessmentPage: React.FC = () => {
   useEffect(() => {
     const sampleQuestions: Question[] = [
       {
-        id: "1",
-        type: QuestionType.MultipleChoice,
-        question: "What is the capital of France?",
-        options: ["London", "Berlin", "Paris", "Madrid"],
+        QuestionID: "1",
+        Type: QuestionType.MultipleChoice,
+        Question: "What is the capital of France?",
+        Options: ["London", "Berlin", "Paris", "Madrid"],
       },
       {
-        id: "2",
-        type: QuestionType.ShortAnswer,
-        question: "What is the meaning of ...?",
+        QuestionID: "2",
+        Type: QuestionType.ShortAnswer,
+        Question: "What is the meaning of ...?",
       },
       {
-        id: "3",
-        type: QuestionType.ShortAnswer,
-        question: "What is the meaning of ...?",
+        QuestionID: "3",
+        Type: QuestionType.ShortAnswer,
+        Question: "What is the meaning of ...?",
       },
       {
-        id: "4",
-        type: QuestionType.ShortAnswer,
-        question: "What is the meaning of ...?",
+        QuestionID: "4",
+        Type: QuestionType.ShortAnswer,
+        Question: "What is the meaning of ...?",
       },
       {
-        id: "5",
-        type: QuestionType.MultipleChoice,
-        question: "What is the capital of France?",
-        options: ["London", "Berlin", "Paris", "Madrid"],
+        QuestionID: "5",
+        Type: QuestionType.MultipleChoice,
+        Question: "What is the capital of France?",
+        Options: ["London", "Berlin", "Paris", "Madrid"],
       },
       {
-        id: "6",
-        type: QuestionType.FlashCard,
-        question: "Sample Question",
-        options: [
+        QuestionID: "6",
+        Type: QuestionType.FlashCard,
+        Question: "Sample Question",
+        Options: [
           "Juliet feels grief for the loss of Tybalt upon hearing about his death",
           "The Nurse promises to bring Romeo to Juliet the same night",
           "Juliet renounces her initial feelings of anger towards Romeo and focuses on grief for his banishment",
@@ -102,18 +102,18 @@ const AssessmentPage: React.FC = () => {
         <div className="max-w-6xl w-full bg-white rounded-lg shadow-lg p-6">
           {currentQuestionData &&
             (() => {
-              switch (currentQuestionData.type) {
+              switch (currentQuestionData.Type) {
                 case QuestionType.MultipleChoice:
                   return (
                     <MultipleChoiceQuestion
                       questionNumber={currentQuestion}
-                      questionText={currentQuestionData.question}
-                      options={currentQuestionData.options || []}
+                      questionText={currentQuestionData.Question}
+                      options={currentQuestionData.Options || []}
                       selectedAnswer={
-                        (answers[currentQuestionData.id] as string) || null
+                        (answers[currentQuestionData.QuestionID] as string) || null
                       }
                       onAnswerSelect={(answer) =>
-                        handleAnswerChange(currentQuestionData.id, answer)
+                        handleAnswerChange(currentQuestionData.QuestionID, answer)
                       }
                     />
                   );
@@ -121,10 +121,10 @@ const AssessmentPage: React.FC = () => {
                   return (
                     <ShortAnswerQuestion
                       questionNumber={currentQuestion}
-                      questionText={currentQuestionData.question}
-                      answer={(answers[currentQuestionData.id] as string) || ""}
+                      questionText={currentQuestionData.Question}
+                      answer={(answers[currentQuestionData.QuestionID] as string) || ""}
                       onAnswerChange={(answer) =>
-                        handleAnswerChange(currentQuestionData.id, answer)
+                        handleAnswerChange(currentQuestionData.QuestionID, answer)
                       }
                     />
                   );
@@ -133,10 +133,10 @@ const AssessmentPage: React.FC = () => {
                     <FlashcardQuestion
                       question={currentQuestionData}
                       onAnswerChange={(answer) =>
-                        handleAnswerChange(currentQuestionData.id, answer)
+                        handleAnswerChange(currentQuestionData.QuestionID, answer)
                       }
                       savedAnswer={
-                        answers[currentQuestionData.id] as
+                        answers[currentQuestionData.QuestionID] as
                           | FlashcardAnswer
                           | undefined
                       }

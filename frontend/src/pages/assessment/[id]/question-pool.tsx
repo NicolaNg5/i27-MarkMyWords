@@ -1,9 +1,10 @@
 "use client";
-import AddQuestionModal from "@/components/modals/AddQuestionModal";
+import CreateQuestionModal from "@/components/modals/AddQuestionModal";
 import GenerateQuestionsModal from "@/components/modals/GenerateQuestionsModal";
 import SaveQuestionPoolModal from "@/components/modals/SaveQuestionPool";
 import QuestionContainer, { ContainerType } from "@/components/QuestionContainer";
 import { Question, QuestionType } from "@/types/question";
+import { set } from "date-fns";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -22,62 +23,117 @@ const testQuestions: Question[] = [
 ];
 
 const QuestionPool: React.FC = () => { 
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState<Question[]>(testQuestions);
     const [newQuestions, setNewQuestions] = useState<Question[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [prompts, setPrompts] = useState<string[]>([]);
+    const [selectedPrompt, setselectedPrompt] = useState<string>("10 Short Answers");
+    const [readingMaterial, setReadingMaterial] = useState<string>("");
     const router = useRouter();
     const { id } = router.query;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalId, setModalId] = useState<number | null>(null);
+    
+    const fetchContent = async () => {
+        try {
+            const res = await fetch(`/api/assessment-content/${id}`);
+            const data = await res.json();
+            setReadingMaterial(data as string);
+            console.log("set",readingMaterial)
+        } catch (error) {
+            setError("Error fetching content");
+        }
+    }
+
+    const fetchPrompts = async () => {
+        try {
+            const res = await fetch("/api/prompts");
+            const data = await res.json();
+            setPrompts(data.prompts);
+        } catch (error) {
+            setError("Error fetching prompts");
+        }
+    };
+
+    const uploadReadingMaterial = async () => {
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "text/plain; charset=utf-8" },
+                body: "file" + "\n" + readingMaterial,
+            });
+            const data = await res.json();
+            console.log(data)
+        } catch (error) {
+            setError("Error uploading reading material");
+        }
+    }
+
+    useEffect(() => {      
+        fetchContent();
+        console.log(readingMaterial)
+        fetchPrompts();
+    }, []);
 
     useEffect(() => {
-    //     const fetchAssessment= async () => {
-    //       try {
-    //         const res = await fetch(`/api/assessment/${id}`);
-    //         const data = await res.json();
-    //         setAssessment(data?.data[0] as Assessment);
-    //       } catch (error) {
-    //         setError("Error fetching assessment");
-    //       }
-    //     }
-    //     const fetchQuestions2 = async () => {
-    //         try {
-    //           const res = await fetch(`/api/questions?assessmentId=${id}`);
-    //           const data = await res.json();
-    //           setQuestions(data?.data as Question[]);
-    //         } catch (error) {
-    //           setError("Error fetching questions");
-    //         }
-    //       }
+        uploadReadingMaterial();
+    }, [readingMaterial]);
+
+
+
+    const handleAddQuestion = (question: Question) => {
+        setNewQuestions((prev) => [...prev, question]);
+        setQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
+    };
+    
+    const handleRemoveQuestion = (question: Question) => {
+        setQuestions((prev) => [...prev, question]);
+        setNewQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
+    };
+    
+    const handleGenerateQuestions = async () => {
         const fetchQuestions = async () => {
-        try {
-            const res = await fetch("/api/questions")
-            const data = await res.json();
-            setQuestions(data?.data as Question[]);
-        } catch (error) {
-            setError("Error generating response");
+            // generate questions
+            try {
+                const res = await fetch("/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain; charset=utf-8" },
+                    body: selectedPrompt,
+                  });
+                const data = await res.json();
+                setQuestions(data?.data as Question[]);
+            } catch (error) {
+                setError("Error fetching questions");
+            }
         }
-        };
-        fetchQuestions();
-    //     fetchAssessment();
-      }, []);
+        await fetchQuestions();
 
-    const handleAddQuestion = () => {
-        // Implement your logic for adding a new question
+        //currently doesn't work because the endpoint requires a gloabl variable of uploaded file to generated questions and not given file content.
     };
-    
-    const handleRemoveQuestion = () => {
-        // Implement your logic for removing a question
-    };
-    
-    const handleGenerateQuestions = () => {
-        // Implement your logic for generating questions
-
+    const handleCreateQuestion = () => {
+        // Implement your logic for creating a new question
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // Implement your logic for saving the question list
+        try {
+            const res = await fetch("/api/save_questions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(newQuestions.map(question => JSON.stringify(question))),
+            });
+            const data = await res.json();
+            if (data?.status === "success") {
+                alert("Questions saved successfully");
+            } else {
+                alert("Error saving questions");
+            }
+        } catch (error) {
+            setError("Error saving questions");
+        }
+
     };
 
     const handleEdit = () => {
@@ -86,16 +142,20 @@ const QuestionPool: React.FC = () => {
     
     return (
         <>
-            <div className="relative h-screen bg-white px-10">
-                <div className="mb-6">
+            <div className="bg-white px-12 pt-2">
+                <div className="mb-4">
                     <h1 className="text-2xl font-bold text-black">Question Pool</h1>
                 </div>
+                <div className="flex justify-between mt-2 text-gray-500">
+                    <p>Questions</p>
+                    <p>Selected Questions</p>
+                </div>
                 <main className="grid grid-cols-12 gap-3">
-                    <div className="grid grid-rows-10 col-span-6 gap-2 ">
-                        <div className="row-span-8">
+                    <div className="grid grid-rows-8 col-span-6 gap-2 ">
+                        <div className="row-span-7">
                             <QuestionContainer questions={questions} type={ContainerType.Candidates} onAction={handleAddQuestion} onEdit={handleEdit}/>
                         </div>
-                        <div className="flex justify-between items-center p-4 row-span-1">
+                        <div className="flex justify-between items-center p-4 row-span-1 py-0">
                             <button
                                 className="bg-green-400 text-white rounded-md p-2"
                                 onClick={() => {
@@ -112,15 +172,16 @@ const QuestionPool: React.FC = () => {
                                     setModalId(2);
                                 }}
                             >
-                                Add Question
+                                Create Question
                             </button>
                         </div>
                     </div>
-                    <div className="grid grid-rows-10 col-span-6 gap-2 ">
-                        <div className="row-span-8">
+                    <div className="grid grid-rows-8 col-span-6 gap-2 ">
+                        <div className="row-span-7">
                             <QuestionContainer questions={newQuestions} type={ContainerType.Quiz} onAction={handleRemoveQuestion} onEdit={handleEdit}/>
                         </div>
-                        <div className="flex justify-end p-5 row-span-1">
+                        <div className="flex justify-between items-center p-4 row-span-1 py-0">
+                            <div/>
                             <button
                                 className="bg-primary text-white rounded-md p-2"
                                 onClick={() => {
@@ -137,8 +198,8 @@ const QuestionPool: React.FC = () => {
                         handleGenerateQuestions()
                         setIsModalOpen(false)
                         }} isOpen={isModalOpen && modalId==1}/>
-                    <AddQuestionModal onClose={() =>{
-                        handleAddQuestion()
+                    <CreateQuestionModal onClose={() =>{
+                        handleCreateQuestion()
                         setIsModalOpen(false)
                     }} isOpen={isModalOpen && modalId==2}/>
                     <SaveQuestionPoolModal onClose={() => {

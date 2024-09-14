@@ -28,7 +28,7 @@ const AssessmentViewPage: React.FC = () => {
   
     const fetchStudents = async () => {
       try {
-        const res = await fetch("/api/students");
+        const res = await fetch("/api/getstudents");
         const data = await res.json();
         setStudents(data?.data as Student[]); //filled with array response
       } catch (error) {
@@ -42,7 +42,7 @@ const AssessmentViewPage: React.FC = () => {
 
     return (
       <>
-        <div className="relative h-screen bg-white">
+        <div className="bg-white p-7">
           <div className="mb-6">
               <h1 className="text-2xl font-bold text-black">Dashboard</h1>
               <div className="flex justify-between mt-2 text-gray-500">

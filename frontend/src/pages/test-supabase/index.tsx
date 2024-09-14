@@ -96,7 +96,7 @@ export default function TestSupabase() {
     //get all Assessments:
     const fetchAssessments = async () => {
       try {
-        const res = await fetch("/api/getassessment");
+        const res = await fetch("/api/getassessments");
         const data = await res.json();
         setAssessments(data?.data as Assessment[]); //filled with arrraay of class type
       } catch (error) {

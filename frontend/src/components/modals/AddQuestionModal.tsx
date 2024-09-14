@@ -1,12 +1,12 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import Modal from './Modal';
 
-interface AddQuestionsModalProps {
+interface CreateQuestionsModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-const AddQuestionModal: React.FC<AddQuestionsModalProps> = ({ isOpen, onClose}) => {
+const CreateQuestionModal: React.FC<CreateQuestionsModalProps> = ({ isOpen, onClose}) => {
     // const []
     
     useEffect(() => {
@@ -16,7 +16,7 @@ const AddQuestionModal: React.FC<AddQuestionsModalProps> = ({ isOpen, onClose}) 
     }
 
     return (
-        <Modal title="Add Question" onClose={onClose} isOpen={isOpen}>
+        <Modal title="Create Question" onClose={onClose} isOpen={isOpen}>
             <form onSubmit={handleSubmit} >
                 <div className=''>
                     <button
@@ -31,4 +31,4 @@ const AddQuestionModal: React.FC<AddQuestionsModalProps> = ({ isOpen, onClose}) 
     );
 };
 
-export default AddQuestionModal;
+export default CreateQuestionModal;

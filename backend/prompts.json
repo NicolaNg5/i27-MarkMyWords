@@ -26,5 +26,9 @@
   "prompt7": {
     "name": "10 Highlight",
     "content": "Create 10 questions from this reading material, each with a suggested answer (the answer must be quoted directly from the text content). Start the texting with \"Please highlight in the paragraph: \" and output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\" and \"answer\", like this: [{\"question\": \"Please highlight in the paragraph: Question 1\", \"answer\": \"Answer 1\"}, ...]."
+  },
+  "prompt8": {
+    "name": "10 Variety",
+    "content": "Create 2 multiple-choice questions, 2 Agree/Disagree questions with two options called \"Agree\" or \"Disagree\", 2 Highlight questions each with a suggested answer (the answer must be quoted directly from the text content, 2 short-answer questions from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option\" and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Option1\",  \"option2\": \"Option2\" \"answer\": \"Answer 1\"}, {\"question\": \"Question 2\",  \"option1\": \"Option1\",  \"option2\": \"Option2\", \"answer\": \"Answer 2\"}, ...] filling in where necessary."
   }
 }
