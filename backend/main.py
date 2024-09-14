@@ -123,26 +123,20 @@ async def upload_file(request: Request):
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
 
-@app.post("/generate")
-async def generate_response(request: Request):
-    global uploaded_file 
+@app.get("/generate")
+async def generate_response(prompt_key: str, assessmentId: str):
     print("Backend - Generating Response...")
     try:
-        prompt_key = (await request.body()).decode("utf-8")
         print("Prompt Key:", prompt_key)
 
         selected_prompt = next(
             (p for p in PROMPTS.values() if p["name"] == prompt_key), None
         )
         if selected_prompt is None:
-            return {"error": "Invalid prompt name"}
-
-        file_path = os.path.join("uploads", uploaded_file) if uploaded_file else None
-        if not file_path or not os.path.exists(file_path):
-            return {"error": "No file uploaded yet."}
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="prompt not found")
+        
+        print("Retrieve file content from assessmentId..")        
+        file_content =  get_assessment_file_content(assessmentId)["file_content"]
 
         response = model.generate_content(contents=[file_content, selected_prompt["content"], 
         "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
@@ -162,7 +156,7 @@ async def generate_response(request: Request):
         return {"response": response_text}
     except Exception as e:
         print("Backend - General Error:", e)
-        return {"error": f"An error occurred: {str(e)}"} 
+        raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/save_questions", status_code=status.HTTP_201_CREATED)
 async def save_questions(request: Request):

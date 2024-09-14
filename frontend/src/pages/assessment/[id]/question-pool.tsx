@@ -76,8 +76,8 @@ const QuestionPool: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        uploadReadingMaterial();
-    }, [readingMaterial]);
+        console.log(questions)
+    }, [questions]);
 
 
 
@@ -95,13 +95,13 @@ const QuestionPool: React.FC = () => {
         const fetchQuestions = async () => {
             // generate questions
             try {
-                const res = await fetch("/api/generate", {
-                    method: "POST",
+                const res = await fetch(`/api/generate/${id}/${selectedPrompt}`, {
+                    method: "GET",
                     headers: { "Content-Type": "text/plain; charset=utf-8" },
-                    body: selectedPrompt,
                   });
                 const data = await res.json();
-                setQuestions(data?.data as Question[]);
+                console.log(data)
+                setQuestions(data as Question[]);
             } catch (error) {
                 setError("Error fetching questions");
             }
