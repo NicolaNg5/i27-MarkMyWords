@@ -4,9 +4,10 @@ import Modal from './Modal';
 interface SaveQuestionPoolModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSubmit: () => void;
 }
 
-const SaveQuestionPoolModal: React.FC<SaveQuestionPoolModalProps> = ({ isOpen, onClose}) => {
+const SaveQuestionPoolModal: React.FC<SaveQuestionPoolModalProps> = ({ isOpen, onClose, onSubmit}) => {
     // const []
     
     useEffect(() => {

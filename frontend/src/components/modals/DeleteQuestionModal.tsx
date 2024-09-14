@@ -1,23 +1,27 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import Modal from './Modal';
+import { Question, QuestionType } from '@/types/question';
 
-interface CreateQuestionsModalProps {
+interface DeleteQuestionModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: () => void;
+    onSubmit: (any: any) => void;
+    question: Question;
 }
 
-const CreateQuestionModal: React.FC<CreateQuestionsModalProps> = ({ isOpen, onClose, onSubmit}) => {
-    // const []
+const DeleteQuestionModal: React.FC<DeleteQuestionModalProps> = ({ isOpen, onClose, onSubmit, question}) => {
     
     useEffect(() => {
     },[])
 
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+        event.preventDefault();
+        onSubmit(question);
+        onClose();
     }
 
     return (
-        <Modal title="Create Question" onClose={onClose} isOpen={isOpen}>
+        <Modal title="Delete Question" onClose={onClose} isOpen={isOpen}>
             <form onSubmit={handleSubmit} >
                 <div className=''>
                     <button
@@ -32,4 +36,4 @@ const CreateQuestionModal: React.FC<CreateQuestionsModalProps> = ({ isOpen, onCl
     );
 };
 
-export default CreateQuestionModal;
+export default DeleteQuestionModal;

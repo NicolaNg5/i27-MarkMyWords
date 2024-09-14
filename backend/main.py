@@ -60,19 +60,19 @@ def save_response(response_data, prompt_name):
 
     if prompt_name == "Analyse Reading Material":
         file_path = "analysis.json"
-        response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
+        response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("questions")}
     elif prompt_name == "10 Short Answers":
         file_path = "questions/shortAns.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "SA"}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "SA"}
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "MCQ"}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "MCQ"}
     elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
         file_path = "questions/cards.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "FC"}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "HL"}
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "HL"}
 
     if file_path:
         try:
@@ -85,6 +85,8 @@ def save_response(response_data, prompt_name):
 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(existing_data, f, indent=3)
+    
+    return response_data
 
 uploaded_file = None
 
@@ -126,6 +128,7 @@ async def upload_file(request: Request):
 @app.get("/generate")
 async def generate_response(prompt_key: str, assessmentId: str):
     print("Backend - Generating Response...")
+
     try:
         print("Prompt Key:", prompt_key)
 
@@ -147,13 +150,13 @@ async def generate_response(prompt_key: str, assessmentId: str):
 
         response_data = {
             "prompt": selected_prompt["name"],
-            "response": response_text,
+            "questions": response_text,
             "file_name": uploaded_file,
         }
 
-        save_response(response_data, prompt_key) 
+        response_final = save_response(response_data, prompt_key) 
 
-        return {"response": response_text}
+        return {"response": response_final}
     except Exception as e:
         print("Backend - General Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -286,6 +289,12 @@ def get_questions():
 @app.get("/question/{id}")
 def get_question(id:UUID):
     question = supabase.table("Question").select("*").eq("QuestionID",id).execute()
+    return question
+
+#Get specific questions based on assessment id
+@app.get("/question/assessment/{id}")
+def get_question(id:UUID):
+    question = supabase.table("Question").select("*").eq("AssessmentID",id).execute()
     return question
 
 #Get all skills

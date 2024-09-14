@@ -4,7 +4,6 @@ import GenerateQuestionsModal from "@/components/modals/GenerateQuestionsModal";
 import SaveQuestionPoolModal from "@/components/modals/SaveQuestionPool";
 import QuestionContainer, { ContainerType } from "@/components/QuestionContainer";
 import { Question, QuestionType } from "@/types/question";
-import { set } from "date-fns";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -23,94 +22,49 @@ const testQuestions: Question[] = [
 ];
 
 const QuestionPool: React.FC = () => { 
-    const [questions, setQuestions] = useState<Question[]>(testQuestions);
+    const [questions, setQuestions] = useState<Question[]>([]);
     const [newQuestions, setNewQuestions] = useState<Question[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [prompts, setPrompts] = useState<string[]>([]);
-    const [selectedPrompt, setselectedPrompt] = useState<string>("10 Short Answers");
     const [readingMaterial, setReadingMaterial] = useState<string>("");
     const router = useRouter();
     const { id } = router.query;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalId, setModalId] = useState<number | null>(null);
-    
-    const fetchContent = async () => {
-        try {
-            const res = await fetch(`/api/assessment-content/${id}`);
-            const data = await res.json();
-            setReadingMaterial(data as string);
-            console.log("set",readingMaterial)
-        } catch (error) {
-            setError("Error fetching content");
-        }
-    }
 
-    const fetchPrompts = async () => {
+    //fetch questions for this specific assessment to display in selected questions column
+    const fetchAssessmentQuestions = async () => {
         try {
-            const res = await fetch("/api/prompts");
+            const res = await fetch(`/api/question/${id}`);
             const data = await res.json();
-            setPrompts(data.prompts);
+            setNewQuestions(data?.data as Question[]);
         } catch (error) {
-            setError("Error fetching prompts");
+            setError("Error fetching questions");
         }
     };
 
-    const uploadReadingMaterial = async () => {
-        try {
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                headers: { "Content-Type": "text/plain; charset=utf-8" },
-                body: "file" + "\n" + readingMaterial,
-            });
-            const data = await res.json();
-            console.log(data)
-        } catch (error) {
-            setError("Error uploading reading material");
-        }
-    }
-
-    useEffect(() => {      
-        fetchContent();
-        console.log(readingMaterial)
-        fetchPrompts();
+    useEffect(() => {
+        fetchAssessmentQuestions();
     }, []);
 
     useEffect(() => {
         console.log(questions)
     }, [questions]);
 
-
-
+    //add question to selected questions column
     const handleAddQuestion = (question: Question) => {
         setNewQuestions((prev) => [...prev, question]);
         setQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
     };
     
+    //remove question from selected questions column
     const handleRemoveQuestion = (question: Question) => {
         setQuestions((prev) => [...prev, question]);
         setNewQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
     };
     
-    const handleGenerateQuestions = async () => {
-        const fetchQuestions = async () => {
-            // generate questions
-            try {
-                const res = await fetch(`/api/generate/${id}/${selectedPrompt}`, {
-                    method: "GET",
-                    headers: { "Content-Type": "text/plain; charset=utf-8" },
-                  });
-                const data = await res.json();
-                console.log(data)
-                setQuestions(data as Question[]);
-            } catch (error) {
-                setError("Error fetching questions");
-            }
-        }
-        await fetchQuestions();
-
-        //currently doesn't work because the endpoint requires a gloabl variable of uploaded file to generated questions and not given file content.
-    };
     const handleCreateQuestion = () => {
+        console.log(questions)
         // Implement your logic for creating a new question
     };
 
@@ -136,9 +90,6 @@ const QuestionPool: React.FC = () => {
 
     };
 
-    const handleEdit = () => {
-        // Implement your logic for editing a question
-    };
     
     return (
         <>
@@ -153,7 +104,7 @@ const QuestionPool: React.FC = () => {
                 <main className="grid grid-cols-12 gap-3">
                     <div className="grid grid-rows-8 col-span-6 gap-2 ">
                         <div className="row-span-7">
-                            <QuestionContainer questions={questions} type={ContainerType.Candidates} onAction={handleAddQuestion} onEdit={handleEdit}/>
+                            <QuestionContainer questions={questions} type={ContainerType.Candidates} onAction={handleAddQuestion} setQuestions={setQuestions}/>
                         </div>
                         <div className="flex justify-between items-center p-4 row-span-1 py-0">
                             <button
@@ -178,7 +129,7 @@ const QuestionPool: React.FC = () => {
                     </div>
                     <div className="grid grid-rows-8 col-span-6 gap-2 ">
                         <div className="row-span-7">
-                            <QuestionContainer questions={newQuestions} type={ContainerType.Quiz} onAction={handleRemoveQuestion} onEdit={handleEdit}/>
+                            <QuestionContainer questions={newQuestions} type={ContainerType.Quiz} onAction={handleRemoveQuestion} setQuestions={setNewQuestions}/>
                         </div>
                         <div className="flex justify-between items-center p-4 row-span-1 py-0">
                             <div/>
@@ -194,18 +145,21 @@ const QuestionPool: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    <GenerateQuestionsModal onClose={() => {
-                        handleGenerateQuestions()
-                        setIsModalOpen(false)
-                        }} isOpen={isModalOpen && modalId==1}/>
-                    <CreateQuestionModal onClose={() =>{
-                        handleCreateQuestion()
-                        setIsModalOpen(false)
-                    }} isOpen={isModalOpen && modalId==2}/>
-                    <SaveQuestionPoolModal onClose={() => {
-                        handleSave()
-                        setIsModalOpen(false)
-                    }} isOpen={isModalOpen && modalId==3}/>
+                    <GenerateQuestionsModal 
+                        onClose={() => {setIsModalOpen(false)}} 
+                        isOpen={isModalOpen && modalId==1}
+                        setQuestions={setQuestions}
+                    />
+                    <CreateQuestionModal 
+                        onClose={() =>{setIsModalOpen(false)}} 
+                        isOpen={isModalOpen && modalId==2}
+                        onSubmit={() => {handleCreateQuestion()}}
+                    />
+                    <SaveQuestionPoolModal
+                        onClose={() =>{setIsModalOpen(false)}} 
+                        isOpen={isModalOpen && modalId==3}
+                        onSubmit={() => {handleCreateQuestion()}}
+                    />
                 </main>
                 
             </div>
