@@ -31,7 +31,7 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
     };
 
     const onDelete = (question: Question) => {
-        setQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
+        setQuestions((prev: any) => prev.filter((q:Question) => q.QuestionID !== question.QuestionID));
     };
 
     const onEdit = (question: Question) => {    
