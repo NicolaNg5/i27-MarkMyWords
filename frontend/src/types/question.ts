@@ -6,8 +6,8 @@ export enum QuestionType {
 }
 
 export enum QuestionCategory {
-    Literal = "Literal",
-    Inferential = "Inferential",
+    Literal = "literal",
+    Inferential = "inferential",
 }
 export interface Question {
     QuestionID: string;

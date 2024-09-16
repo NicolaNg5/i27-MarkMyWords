@@ -53,18 +53,18 @@ const QuestionPool: React.FC = () => {
 
     //add question to selected questions column
     const handleAddQuestion = (question: Question) => {
-        setNewQuestions((prev) => [...prev, question]);
+        setNewQuestions((prev) => prev ? [...prev, question] : [question]);
         setQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
     };
     
     //remove question from selected questions column
     const handleRemoveQuestion = (question: Question) => {
-        setQuestions((prev) => [...prev, question]);
+        setQuestions((prev) => prev ? [...prev, question] : [question]);
         setNewQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
     };
     
     const handleCreateQuestion = () => {
-        console.log(questions)
+        // console.log(questions)
         // Implement your logic for creating a new question
     };
 
@@ -158,7 +158,7 @@ const QuestionPool: React.FC = () => {
                     <SaveQuestionPoolModal
                         onClose={() =>{setIsModalOpen(false)}} 
                         isOpen={isModalOpen && modalId==3}
-                        onSubmit={() => {handleCreateQuestion()}}
+                        questions={newQuestions}
                     />
                 </main>
                 

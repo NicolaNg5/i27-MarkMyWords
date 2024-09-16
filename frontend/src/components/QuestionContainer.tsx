@@ -47,7 +47,8 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                             question.Type === "FC" ? "bg-green-400" : 
                             question.Type === "HL" ? "bg-yellow-400" : 
                             "bg-red-400";
-
+                        
+                        const smalltext = question.Options?.reduce((total, str) => total + str.length, 0) as number > 50 ? "text-sm" : "text-md";
                         return (
                             <li key={question.QuestionID} className="flex items-center justify-between py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md">
                                 <div className="grid grid-row-2 flex-grow cursor-pointer max-h-xs" onClick={() => handleRowClick(question.QuestionID)}>
@@ -62,37 +63,49 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                                     {expanded === question.QuestionID && ( 
                                         <>
                                         {question.Type == QuestionType.MultipleChoice && (
-                                            <div className={`mt-2 text-gray-600` + (question.Options?.reduce((total, str) => total + str.length, 0) as number > 180) ? "test-sm" : "text-md"}>
-                                                <div className="flex items-center">
-                                                    {question.Options?.map((option, index) => ( 
-                                                        <div key={option} className={`gap-2 px-3`}>
-                                                            {index + 1}. {option}
-                                                        </div>
-                                                    ))}
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
                                                 </div>
-                                                <div className="gap-2 px-3">
-                                                    Answer: {question.Answer}
+                                                    <div className="flex items-center">
+                                                        {question.Options?.map((option, index) => ( 
+                                                            <div key={option} className={`gap-2 px-3`}>
+                                                                {index + 1}. {option}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                <div className="flex gap-2 pt-3 px-3">
+                                                    <p><b>Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.ShortAnswer && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Suggested Answer: {question.Answer}
+                                                    <p><b>Suggested Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.Highlighting && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Suggested Highlighted Answer: {question.Answer}
+                                                    <p><b>Suggested Highlighted Section:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.FlashCard && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Matching Answer: {question.Answer}
+                                                    <p><b>Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
