@@ -67,8 +67,8 @@ const AssessmentPage: React.FC = () => {
       {
         id: "7",
         type: QuestionType.Highlighting, // New Highlighting Question
-        question: "Highlight the most important part of the text below:",
-        content: "Romeo and Juliet is a play by William Shakespeare about two young star-crossed lovers."
+        question: "Highlight the most important part of the text below",
+        content: "Romeo and Juliet is a tragedy written by William Shakespeare early in his career about two young star-crossed lovers whose deaths ultimately reconcile their feuding families. It was among Shakespeare's most popular plays during his lifetime and, along with Hamlet, is one of his most frequently performed plays. Today, the title characters are regarded as archetypal young lovers. Romeo and Juliet belongs to a tradition of tragic romances stretching back to antiquity. Its plot is based on an Italian tale translated into verse as The Tragical History of Romeus and Juliet by Arthur Brooke in 1562 and retold in prose in Palace of Pleasure by William Painter in 1567. Shakespeare borrowed heavily from both but expanded the plot by developing supporting characters, particularly Mercutio and Paris."
       }
     ];
 
