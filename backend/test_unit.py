@@ -39,14 +39,40 @@ class TestAPI(BaseTestAPI):
         response = self.make_get_request("/students")
         self.assert_response(response, expected_response)
 
+   
+
     @patch('main.supabase.table')
     def test_get_student(self, mock_table):
         test_uuid = "067207b7-eb56-4e06-978f-d6a419e6ca20"
-        mock_data = [{"Studentid": str(test_uuid), "name": "Student4", "email": "student4@gmail.com"}]
-        expected_response = self.mock_supabase_response(mock_table, mock_data)
-
+        
+        # Mock response from supabase
+        mock_data = [
+            {
+                "Studentid": test_uuid,
+                "name": "Student4",
+                "email": "student4@gmail.com",
+                "class": "58c3c152-4da2-40b7-9463-aeb908dc34cc"
+            }
+        ]
+        
+        # Simulate Supabase table select().eq().execute() method
+        mock_table.return_value.select.return_value.eq.return_value.execute.return_value = {
+            "data": mock_data,
+            "count": None
+        }
+        
+        # Expected response to compare against
+        expected_response = {
+            "data": mock_data,
+            "count": None
+        }
+        
+        # Make the request to your FastAPI endpoint
         response = self.make_get_request(f"/student/{test_uuid}")
+        
+        # Assert that the response matches the expected structure
         self.assert_response(response, expected_response)
+
 
     @patch('main.supabase.table')
     def test_get_classes(self, mock_table):
@@ -85,11 +111,28 @@ class TestAPI(BaseTestAPI):
 # get skills by ID --> not working need to be fixed
     @patch('main.supabase.table')
     def test_get_skill(self, mock_table):
-        test_uuid = uuid.uuid4()
-        mock_data = [{"skillid": str(test_uuid), "name": "Skill 1", "importance": "High"}]
-        expected_response = self.mock_supabase_response(mock_table, mock_data)
-
+        # Use the skillid from your JSON response example
+        test_uuid = "d9c7e6a9-6cfe-4d57-828e-0d6b5afc6f63"
+        
+        # Mock response to match the new structure
+        mock_data = [{"skillid": test_uuid, "name": "SkillA", "importance": "Normal"}]
+        
+        # Simulate Supabase table select().eq().execute() method
+        mock_table.return_value.select.return_value.eq.return_value.execute.return_value = {
+            "data": mock_data,
+            "count": None
+        }
+        
+        # Expected response to compare against
+        expected_response = {
+            "data": mock_data,
+            "count": None
+        }
+        
+        # Make the request to your FastAPI endpoint
         response = self.make_get_request(f"/skill/{test_uuid}")
+        
+        # Assert that the response matches the expected structure
         self.assert_response(response, expected_response)
 
     # Adding the test for /questionskills endpoint
