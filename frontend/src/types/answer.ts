@@ -1,5 +1,6 @@
-export interface Answer {
-    id: string,
-    questionID: string,
-    answer: string,
+export interface StudentAnswer {
+  AnswerID: string;
+  QuestionID: string;
+  StudentID: string;
+  Answer: string;
 }
