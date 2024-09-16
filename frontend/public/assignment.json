@@ -1,16 +1,10 @@
 {
-  "items": [
-    {
-      "id": 1,
-      "name": "Assignment 1",
-      "dueDate":"",
-      "material":""
-    },
-    {
-      "id": 2,
-      "name": "Assignment 2",
-      "dueDate":"",
-      "material":""
-    }
-  ]
+  "assessment": {
+    "Assessmentid": "12345",
+    "ReadingMaterialID": "RomeoJuliet",
+    "Title": "Romeo & Juliet",
+    "Topic": "Shakespearean Literature",
+    "Class": "7th Grade",
+    "dueDate": "2024-09-03"
+  }
 }

@@ -1,6 +1,6 @@
 export interface Assessment {
     Assessmentid: string,
-    ReadingMaterialID: string,
+    ReadingFileName: string,
     Title: string,
     Topic: string,
     Class: string,
