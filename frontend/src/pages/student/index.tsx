@@ -6,6 +6,8 @@ import ShortAnswerQuestion from "@/components/ShortAnswerQuestion";
 import QuestionNavigation from "@/components/QuestionNavigation";
 import Timer from "@/components/Timer";
 import FlashcardQuestion from "@/components/FlashCardQuestion";
+import TextHighlight from "@/components/TextHighlight";
+
 import { Question, QuestionType } from "@/types/question";
 
 interface FlashcardAnswer {
@@ -62,6 +64,12 @@ const AssessmentPage: React.FC = () => {
           "Romeo attempts suicide upon hearing about Juliet's grief",
         ],
       },
+      {
+        id: "7",
+        type: QuestionType.Highlighting, // New Highlighting Question
+        question: "Highlight the most important part of the text below:",
+        content: "Romeo and Juliet is a play by William Shakespeare about two young star-crossed lovers."
+      }
     ];
 
     setQuestions(sampleQuestions);
@@ -142,9 +150,22 @@ const AssessmentPage: React.FC = () => {
                       }
                     />
                   );
+                  case QuestionType.Highlighting: // Handle the new highlighting question type
+                  return (
+                    <TextHighlight
+                    questionNumber={currentQuestion}
+                    questionText={currentQuestionData.question}
+                    content={currentQuestionData.content || ""}
+                    highlightedText={(answers[currentQuestionData.id] as string) || ""}
+                    onHighlight={(highlightedText) =>
+                      handleAnswerChange(currentQuestionData.id, highlightedText)
+                      }
+                    />
+                  );
                 default:
                   return <div>Unsupported question type</div>;
               }
+
             })()}
         </div>
       </div>

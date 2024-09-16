@@ -1,43 +1,43 @@
-"use client";
-import React, { useState, useRef } from 'react';
+// src/components/HighlightingQuestion.tsx
+import React, { useState, useRef } from "react";
 
-interface TextHighlightingProps {
-  htmlContent: string;
+interface HighlightingQuestionProps {
+  questionNumber: number;
+  questionText: string;
+  content: string;
+  highlightedText: string;
   onHighlight: (highlightedText: string) => void;
 }
 
-const TextHighlight = ({ htmlContent, onHighlight }: TextHighlightingProps) => {
-  const [highlightedText, setHighlightedText] = useState("");
+const HighlightingQuestion: React.FC<HighlightingQuestionProps> = ({
+  questionNumber,
+  questionText,
+  content,
+  highlightedText,
+  onHighlight,
+}) => {
   const highlightRef = useRef(null);
 
   const handleHighlight = () => {
-    const selection: Selection | null = window.getSelection();
+    const selection = window.getSelection();
     const selectedText = selection?.toString();
 
-    if (selectedText && highlightRef.current && selection) {
-      const range : Range = selection.getRangeAt(0);
-
-      const newRange = document.createRange();
-      newRange.setStart(range.startContainer, range.startOffset);
-      newRange.setEnd(range.endContainer, range.endOffset);
-
-      const selectedTextNode = newRange.extractContents();
-
-      const highlightedNode = document.createTextNode(selectedText);
-      newRange.insertNode(highlightedNode); 
-      selectedTextNode.textContent = "";
-
-      setHighlightedText(selectedText);
-      onHighlight(selectedText);
+    if (selectedText) {
+      onHighlight(selectedText); // Pass the selected text back to the parent component
     }
   };
 
   return (
-    <div 
-      ref={highlightRef}
-      onMouseUp={handleHighlight}
-    />
+    <div className="highlighting-question" onMouseUp={handleHighlight}>
+      <h2>{questionNumber}. {questionText}</h2>
+      <p ref={highlightRef} dangerouslySetInnerHTML={{ __html: content }} />
+      {highlightedText && (
+        <div className="highlighted-text">
+          <strong>Highlighted Text:</strong> {highlightedText}
+        </div>
+      )}
+    </div>
   );
 };
 
-export default TextHighlight;
+export default HighlightingQuestion;
