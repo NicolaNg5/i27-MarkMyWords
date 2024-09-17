@@ -1,12 +1,16 @@
 // src/components/CreateAssessmentForm.tsx
 
+import { randomUUID } from "crypto";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
+import Loading from "../Loading";
 
 const CreateAssessmentForm: React.FC = () => {
   const [title, setTitle] = useState("");
+  const [topic, setTopic] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -19,88 +23,100 @@ const CreateAssessmentForm: React.FC = () => {
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission logic
-    console.log({ title, dueDate, file });
+    console.log({ title, topic, dueDate, file });
 
-    await fetch('http://localhost:3000/assignment.json', { //add correct api here
+    const new_assessment = JSON.stringify({
+      "title": title,
+      "topic": topic,
+      "class_id": "5cbb6db4-8601-4b16-a834-a5085437c707",
+      "due_date": dueDate as string,
+      "reading_file_name": file?.name,
+    })
+
+    await fetch('http://localhost:3000/api/postassessment', { //add correct api here
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        title,
-        dueDate,
-        file
-      }),
+      body: new_assessment,
     });
 
-    console.log("Assessment",{ title, dueDate, file });
+    console.log("Assessment",new_assessment);
 
     // router.reload(); //reloads to display added assessment
   };
 
   return (
-    <form onSubmit={handleSubmit} className="text-black"
-    >
-      <div className="mb-4">
-        <label className="block mb-2">Title</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="text-black">
+        <div className="mb-4">
+          <label className="block mb-2">Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Topic</label>
+          <input
+            type="text"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Due Date</label>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
 
-      <div className="mb-4">
-        <label className="block mb-2">Due Date</label>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-2">Reading Material</label>
-        <div className="border border-gray-300 rounded p-4 text-center">
-          <div className="flex flex-col space-y-4   ...">
-            {file ? (
-              <p>{file.name}</p>
-            ) : (
-              <div>
-                <b>Drop or Drag your file here</b>
-                <p>or Upload File below</p>
+        <div className="mb-4">
+          <label className="block mb-2">Reading Material</label>
+          <div className="border border-gray-300 rounded p-4 text-center">
+            <div className="flex flex-col space-y-4   ...">
+              {file ? (
+                <p>{file.name}</p>
+              ) : (
+                <div>
+                  <b>Drop or Drag your file here</b>
+                  <p>or Upload File below</p>
+                </div>
+              )}
+              <div className="place-content-center">
+                <label
+                  htmlFor="file-upload"
+                  className="bg-primary text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-primary-dark"
+                >
+                  Upload File
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="hidden "
+                />
               </div>
-            )}
-            <div className="place-content-center">
-              <label
-                htmlFor="file-upload"
-                className="bg-primary text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-primary-dark"
-              >
-                Upload File
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileChange}
-                className="hidden "
-              />
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
-        >
-          Create
-        </button>
-      </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
+          >
+            Create
+          </button>
+        </div> 
     </form>
   );
 };

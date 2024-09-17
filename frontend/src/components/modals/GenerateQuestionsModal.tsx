@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { Question } from '@/types/question';
 import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from 'uuid';
+import Loading from '../Loading';
 
 interface GenerateQuestionsModalProps {
     isOpen: boolean;
@@ -76,9 +77,7 @@ const GenerateQuestionsModal: React.FC<GenerateQuestionsModalProps> = ({ isOpen,
         <Modal title="Generate Questions" onClose={onClose} isOpen={isOpen}>
             <form onSubmit={handleGenerateQuestions} >
                 {loading ? 
-                    <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900 mt-5 mb-5"></div>
-                    </div>
+                    <Loading/>
                 : (
                 <div className='flex items-center justify-between'>
                     <select
