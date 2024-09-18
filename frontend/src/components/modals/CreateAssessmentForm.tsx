@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Loading from "../Loading";
 
 const CreateAssessmentForm: React.FC = () => {
@@ -10,6 +10,7 @@ const CreateAssessmentForm: React.FC = () => {
   const [topic, setTopic] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState("");
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -19,6 +20,16 @@ const CreateAssessmentForm: React.FC = () => {
       setFile(e.target.files[0]);
     }
   };
+
+  useEffect(() => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFileContent(e.target?.result as string);
+      };
+      reader.readAsText(file)
+    }
+  }, [file]);
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
@@ -33,91 +44,98 @@ const CreateAssessmentForm: React.FC = () => {
       "reading_file_name": file?.name,
     })
 
-    await fetch('http://localhost:3000/api/postassessment', { //add correct api here
+    await fetch('http://localhost:3000/api/postassessment', { 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: new_assessment,
     });
+    
+    await fetch('http://localhost:3000/api/upload', { 
+      method: 'POST',
+      body: file?.name + "\n" + fileContent,
+    });
 
-    console.log("Assessment",new_assessment);
-
-    // router.reload(); //reloads to display added assessment
+    router.reload(); //reloads to display added assessment
   };
 
   return (
-    <form onSubmit={handleSubmit} className="text-black">
-        <div className="mb-4">
-          <label className="block mb-2">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Topic</label>
-          <input
-            type="text"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Due Date</label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-            required
-          />
-        </div>
+    <>
+    {loading ? <Loading /> : (
+      <form onSubmit={handleSubmit} className="text-black">
+          <div className="mb-4">
+            <label className="block mb-2">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-2">Topic</label>
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-2">Due Date</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Reading Material</label>
-          <div className="border border-gray-300 rounded p-4 text-center">
-            <div className="flex flex-col space-y-4   ...">
-              {file ? (
-                <p>{file.name}</p>
-              ) : (
-                <div>
-                  <b>Drop or Drag your file here</b>
-                  <p>or Upload File below</p>
+          <div className="mb-4">
+            <label className="block mb-2">Reading Material</label>
+            <div className="border border-gray-300 rounded p-4 text-center">
+              <div className="flex flex-col space-y-4   ...">
+                {file ? (
+                  <p>{file.name}</p>
+                ) : (
+                  <div>
+                    <b>Upload file here</b>
+                  </div>
+                )}
+                <div className="place-content-center">
+                  <label
+                    htmlFor="file-upload"
+                    className="bg-primary text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-primary-dark"
+                  >
+                    Upload File
+                  </label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden "
+                    required
+                  />
                 </div>
-              )}
-              <div className="place-content-center">
-                <label
-                  htmlFor="file-upload"
-                  className="bg-primary text-white  w-48 mt-10 px-4 py-2 rounded cursor-pointer hover:bg-primary-dark"
-                >
-                  Upload File
-                </label>
-                <input
-                  id="file-upload"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="hidden "
-                />
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
-          >
-            Create
-          </button>
-        </div> 
-    </form>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
+            >
+              Create
+            </button>
+          </div> 
+      </form>
+    )}
+    </>
   );
 };
 

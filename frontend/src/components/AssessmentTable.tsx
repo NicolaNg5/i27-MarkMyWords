@@ -1,9 +1,10 @@
 // src/components/Table.tsx
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import { Assessment } from "@/types/assessment";
+import Loading from "./Loading";
 
 
 
@@ -12,6 +13,8 @@ interface AssementTableProps {
 }
 
 const AssessmentTable = (props: AssementTableProps) => {
+  const [loading, setLoading] = useState(false);
+
   return (
     <table className="min-w-full bg-white border border-gray-300">
       <thead>
@@ -36,12 +39,15 @@ const AssessmentTable = (props: AssementTableProps) => {
               </button>
             </td>
             <td className="px-4 py-2 border-b border-gray-300">
-              <Link
-                href={`/assessment/${assessment.Assessmentid}`}
-                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
-              >
-                View Assessment
-              </Link>
+              {loading ? <Loading size={"5"}/> :(
+                <Link
+                  href={`/assessment/${assessment.Assessmentid}`}
+                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
+                  onClick={() => setLoading(true)}
+                >
+                  View Assessment
+                </Link>
+              )}
             </td>
           </tr>
         ))}

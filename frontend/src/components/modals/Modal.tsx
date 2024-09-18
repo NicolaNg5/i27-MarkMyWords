@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, children }) => {
             &times;
           </button>
         </div>
-        <h2 className="text-2xl font-semibold mb-4">{title}</h2>
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
         {children}
       </div>
     </div>

@@ -7,13 +7,16 @@ import AssessmentTable from '@/components/AssessmentTable';
 import CreateAssessmentForm from '../../components/modals/CreateAssessmentForm';
 import { Assessment } from '@/types/assessment';
 import { BiPlus } from 'react-icons/bi';
+import Loading from '@/components/Loading';
 
 export default function AssignmentPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const fetchAssessments = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/getassessments");
       const data = await res.json();
@@ -21,6 +24,7 @@ export default function AssignmentPage() {
     } catch (error) {
       setError("Error fetching assessments");
     }
+    setLoading(false);
   };
 
   // Fetch assignments on component mount
@@ -39,7 +43,9 @@ export default function AssignmentPage() {
             onClick={() => setIsModalOpen(true)} 
           />
         </div>
-        <AssessmentTable assessments={assessments} />
+        {loading ? <Loading /> : (
+          <AssessmentTable assessments={assessments} />
+        )}
         {/* Modal for Creating Assessments */}
         <Modal title="Create Assessment" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <CreateAssessmentForm />

@@ -181,34 +181,15 @@ async def save_questions(request: Request):
 
         # Save questions to Supabase database
         for question in questions:
-            options = [
-                question.get("option1", ""),
-                question.get("option2", ""),
-                question.get("option3", ""),
-                question.get("option4", ""),
-            ]
-            # Remove empty strings from the options list
-            options = [option for option in options if option]
-
-            new_question = {
-                "QuestionID": str(uuid.uuid4()),
-                "AssessmentID": question.get("assessmentID", None),
-                "Question": question["question"],
-                "Category": question.get("category", None),
-                "Type": question["type"],
-                "Options": options,
-                "Answer": question["answer"],
-            }
-
             # Check if the question already exists
-            existing_question = supabase.table("Question").select("*").eq("Question", new_question["Question"]).execute()
+            existing_question = supabase.table("Question").select("*").eq("Question", question["Question"]).execute()
             if existing_question.data:
-                print(f"Question '{new_question['Question']}' already exists, skipping...")
+                print(f"Question '{question['Question']}' already exists, skipping...")
                 continue
 
             # Insert new question into Supabase
             try:
-                result = supabase.table("Question").insert(new_question).execute()
+                result = supabase.table("Question").insert(question).execute()
                 if not result.data:
                     raise HTTPException(status_code=500, detail="Failed to create question")
             except APIError as e:

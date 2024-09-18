@@ -31,9 +31,7 @@ const ChooseQuestions: React.FC<{
         return "SA";
       case "10 Multiple Choices":
         return "MCQ";
-      case "10 True/False":
-      case "10 Agree/Disagree":
-      case "10 Correct/Incorrect":
+      case "10 Correct or Incorrect" || "10 True or False" || "10 Agree or Disagree":
         return "FC";
       case "10 Highlight":
         return "HL";
