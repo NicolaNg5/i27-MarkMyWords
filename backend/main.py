@@ -377,6 +377,7 @@ def create_student(student:StudentSchema):
 
 #Create assessment:
 class AssessmentSchema(BaseModel):
+    id: str
     title: str
     topic: str
     class_id: str
@@ -417,6 +418,31 @@ def create_assessment(assessment: AssessmentSchema):
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@app.put("/update_assessment")
+def update_assessment(updated_assessment: AssessmentSchema):
+
+    due_date = datetime.strptime(updated_assessment.due_date, '%Y-%m-%d')
+
+    new_assessment = {
+        "Assessmentid": updated_assessment.id,
+        "Title": updated_assessment.title,
+        "Topic": updated_assessment.topic,
+        "Class": updated_assessment.class_id,
+        "dueDate": due_date.strftime('%Y-%m-%d'),
+        "ReadingFileName": updated_assessment.reading_file_name
+    }
+
+    try:
+        result = supabase.table("Assessment").update(new_assessment).execute()
+        if result.data:
+            return {"message": "Assessment updated successfully", "assessment": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update assessment")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")

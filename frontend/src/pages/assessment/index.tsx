@@ -8,10 +8,14 @@ import CreateAssessmentForm from '../../components/modals/CreateAssessmentForm';
 import { Assessment } from '@/types/assessment';
 import { BiPlus } from 'react-icons/bi';
 import Loading from '@/components/Loading';
+import EditAssessmentModal from '@/components/modals/EditAssessmentModal';
+import DeleteAssessmentModal from '@/components/modals/DeleteAssessmentModal';
 
 export default function AssignmentPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalId, setModalId] = useState<number | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -40,12 +44,16 @@ export default function AssignmentPage() {
             text="Create Assessment" 
             icon={<BiPlus/>}
             additionalStyling="bg-secondary text-black hover:bg-secondary-dark transition-colors duration-300"
-            onClick={() => setIsModalOpen(true)} 
-          />
+            onClick={() => {
+              setIsModalOpen(true)
+              setModalId(1)
+            }}/>
         </div>
         {loading ? <Loading /> : (
-          <AssessmentTable assessments={assessments} />
+          <AssessmentTable assessments={assessments} setIsModalOpen={setIsModalOpen} setModalId={setModalId} setSelectedAssessment={setSelectedAssessment}/>
         )}
+        <EditAssessmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} assessment={selectedAssessment!} />
+        <DeleteAssessmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} assessment={selectedAssessment!} />
         {/* Modal for Creating Assessments */}
         <Modal title="Create Assessment" isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <CreateAssessmentForm />
