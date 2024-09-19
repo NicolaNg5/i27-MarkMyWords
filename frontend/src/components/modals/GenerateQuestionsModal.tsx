@@ -12,12 +12,18 @@ interface GenerateQuestionsModalProps {
 }
 
 const GenerateQuestionsModal: React.FC<GenerateQuestionsModalProps> = ({ isOpen, onClose, setQuestions}) => {
-    const { id } = useRouter().query;
-
+    const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [selectedPrompt, setSelectedPrompt] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [prompts, setPrompts] = useState<string[]>([]);
+    const [id, setId] = useState<string>( router.query.id as string);
+
+    useEffect(() => {
+        if(router.isReady){
+            setId(router.query.id as string);
+        }
+    }, [router.isReady]);
     
     const fetchPrompts = async () => {
         try {
@@ -54,7 +60,7 @@ const GenerateQuestionsModal: React.FC<GenerateQuestionsModalProps> = ({ isOpen,
             const array = JSON.parse(data.response["questions"]);
             const type = data.response["category"]
             // maps out the questions and adds them to the questions array
-            setQuestions((prev) => prev.concat(
+            setQuestions((prev: any) => prev.concat(
                 array.map((question: any) => ({
                     QuestionID: uuidv4(),
                     AssessmentID: id as string,

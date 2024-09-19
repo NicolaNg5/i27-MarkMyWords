@@ -236,10 +236,14 @@ def get_student(id:UUID):
     student = supabase.table("student").select("*").eq("Studentid",id).execute()
     return student
 
-@app.get("class/{id}/students")
-def get_class_students(id:UUID):
-    student = supabase.table("student").select("*").eq("class",id).execute()
-    return student
+@app.get("/class/students")
+def get_class_students(class_id:UUID):
+    try:
+        students = supabase.table("student").select("*").eq("class",class_id).execute()
+        print(students)
+        return students
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 #Get all classes
 @app.get("/classes")
@@ -456,7 +460,7 @@ def update_assessment(assessment_id: str, title: Optional[str] = None, topic: Op
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-@app.delete("/delete_assessment/${assessment_id}")
+@app.delete("/delete_assessment")
 def delete_assessment(assessment_id: str):
     try:
         result = supabase.table("Assessment").delete().eq("Assessmentid", assessment_id).execute()

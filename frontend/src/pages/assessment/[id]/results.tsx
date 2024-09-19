@@ -26,6 +26,11 @@ const AssessmentResults: React.FC = () => {
     }
   }, [router.isReady]);
 
+  useEffect(() => {
+    isStudentView ? setSelectedView('Area of Difficulty') : setSelectedView('Class Ranking');
+  }, [isStudentView]);
+
+
   //to fetch real data
   // const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
   // const [students, setStudents] = useState<Student[]>([])
@@ -153,6 +158,12 @@ const AssessmentResults: React.FC = () => {
       ) : selectedView === 'Class Ranking' ? (
         <Ranking classRankings={classRankings} studentRankings={studentRankings} />
       ) : null}
+      <button
+        className="bg-gray-500 text-white p-2 mt-6 rounded hover:bg-gray-700"
+        onClick={() => window.history.back()}
+      >
+          Back
+      </button>
     </div>
   );
 };

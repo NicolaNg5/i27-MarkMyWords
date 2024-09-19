@@ -21,10 +21,14 @@ const DeleteAssessmentModal: React.FC<DeleteAssessmentModalProps> = ({ isOpen, o
         e.preventDefault();
         setLoading(true);
 
-        // Delete the assessment
-        const res = await fetch(`/api/assessment_delete/${assessment.Assessmentid}`, {
-            method: 'DELETE',
-        });
+        try {
+            const res = await fetch(`/api/assessment_delete/${assessment.Assessmentid}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+            });
+        } catch (error) {
+            console.log("Error deleting assessment: ", error);
+        }
 
         setLoading(false);
         onClose();

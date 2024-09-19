@@ -32,7 +32,7 @@ const AssessmentViewPage: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`/api/class_students/${id}`);
+      const res = await fetch(`/api/class_students/${assessment.Class}`);
       const data = await res.json();
       setStudents(data?.data as Student[]); //filled with array response
     } catch (error) {
@@ -42,8 +42,11 @@ const AssessmentViewPage: React.FC = () => {
 
   useEffect(() => {
     fetchAssessment();
-    fetchStudents();
   }, [id]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [assessment]);
 
 
     return (

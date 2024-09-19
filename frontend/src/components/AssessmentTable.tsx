@@ -56,15 +56,19 @@ const AssessmentTable: React.FC<AssessmentTableProps> = ({setIsModalOpen, setMod
               </button>
             </td>
             <td className="px-4 py-2 border-b border-gray-300">
-              {loading ? <Loading size="5" margin="0" extraStyles="px-4 py-2"/> :(
+              <div style={{minWidth: "155px"}}>
+                {loading &&
+                    <Loading size="5" margin="0" extraStyles="px-2 py-2"/> 
+                }
                 <Link
                   href={`/assessment/${assessment.Assessmentid}`}
                   className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark"
                   onClick={() => setLoading(true)}
+                  hidden={loading}
                 >
                   View Assessment
                 </Link>
-              )}
+              </div>
             </td>
           </tr>
         ))}
