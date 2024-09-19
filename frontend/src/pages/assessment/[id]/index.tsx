@@ -8,36 +8,42 @@ import { format } from 'date-fns';
 
 const AssessmentViewPage: React.FC = () => {
   const router = useRouter();
-  const { id } = router.query;
   const basePath = router.asPath;
   const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
   const [students, setStudents] = useState<Student[]>([])
   const [error, setError] = useState<string | null>(null);
+  const [id, setId] = useState<string>( router.query.id as string);
+  
+  useEffect(() => {
+    if(router.isReady){
+      setId(router.query.id as string);
+    }
+  }, [router.isReady]);
 
+  const fetchAssessment= async () => {
+    try {
+      const res = await fetch(`/api/assessment/${id}`);
+      const data = await res.json();
+      setAssessment(data?.data[0] as Assessment);
+    } catch (error) {
+      setError("Error fetching assessment");
+    }
+  }
+
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch(`/api/class_students/${id}`);
+      const data = await res.json();
+      setStudents(data?.data as Student[]); //filled with array response
+    } catch (error) {
+      setError("Error fetching students");
+    }
+  };
 
   useEffect(() => {
-    const fetchAssessment= async () => {
-      try {
-        const res = await fetch(`/api/assessment/${id}`);
-        const data = await res.json();
-        setAssessment(data?.data[0] as Assessment);
-      } catch (error) {
-        setError("Error fetching assessment");
-      }
-    }
-  
-    const fetchStudents = async () => {
-      try {
-        const res = await fetch("/api/getstudents");
-        const data = await res.json();
-        setStudents(data?.data as Student[]); //filled with array response
-      } catch (error) {
-        setError("Error fetching students");
-      }
-    };
     fetchAssessment();
     fetchStudents();
-  }, []);
+  }, [id]);
 
 
     return (

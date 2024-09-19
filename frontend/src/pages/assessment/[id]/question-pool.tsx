@@ -13,10 +13,16 @@ const QuestionPool: React.FC = () => {
     const [newQuestions, setNewQuestions] = useState<Question[]>([]);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
-    const { id } = router.query;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalId, setModalId] = useState<number | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const [id, setId] = useState<string>( router.query.id as string);
+    useEffect(() => {
+        if(router.isReady){
+        setId(router.query.id as string);
+        }
+    }, [router.isReady]);
 
     //fetch questions for this specific assessment to display in selected questions column
     const fetchAssessmentQuestions = async () => {
@@ -33,7 +39,7 @@ const QuestionPool: React.FC = () => {
 
     useEffect(() => {
         fetchAssessmentQuestions();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         // console.log(questions)
@@ -97,23 +103,31 @@ const QuestionPool: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center p-4 row-span-1 py-0">
                             <button
-                                className="bg-green-400 text-white rounded-md p-2"
-                                onClick={() => {
-                                    setIsModalOpen(true);
-                                    setModalId(1);
-                                }}
+                                className="bg-gray-500 text-white p-2 rounded hover:bg-gray-700"
+                                onClick={() => window.history.back()}
                             >
-                                Generate Questions
+                                Back
                             </button>
-                            <button
-                                className="bg-primary text-white rounded-md p-2"
-                                onClick={() =>{
-                                    setIsModalOpen(true);
-                                    setModalId(2);
-                                }}
-                            >
-                                Create Question
-                            </button>
+                            <div>
+                                <button
+                                    className="bg-green-400 text-white rounded-md p-2 mr-2"
+                                    onClick={() => {
+                                        setIsModalOpen(true);
+                                        setModalId(1);
+                                    }}
+                                >
+                                    Generate Questions
+                                </button>
+                                <button
+                                    className="bg-primary text-white rounded-md p-2"
+                                    onClick={() =>{
+                                        setIsModalOpen(true);
+                                        setModalId(2);
+                                    }}
+                                >
+                                    Create Question
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-rows-8 col-span-6 gap-2 ">
@@ -150,7 +164,6 @@ const QuestionPool: React.FC = () => {
                         questions={newQuestions}
                     />
                 </main>
-                
             </div> )}
         </>
                            

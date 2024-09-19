@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SwitchButton from '@/components/SwitchButton';
 import Dropdown from '@/components/DropdownMenu';
 import DifficultyArea from '@/components/DifficultyArea';
@@ -19,7 +19,12 @@ const AssessmentResults: React.FC = () => {
 
 
   const router = useRouter();
-  const { assessmentid } = router.query;
+  const [id, setId] = useState<string>( router.query.id as string);
+  useEffect(() => {
+    if(router.isReady){
+      setId(router.query.id as string);
+    }
+  }, [router.isReady]);
 
   //to fetch real data
   // const [assessment, setAssessment] = useState<Assessment>({} as Assessment);

@@ -11,7 +11,7 @@ import EditAssessmentModal from "./modals/EditAssessmentModal";
 
 interface AssessmentTableProps {
   setIsModalOpen: (value: boolean) => void,
-  setModalId: (id: number | null) => void,
+  setModalId: (id: number) => void,
   setSelectedAssessment: (assessment: Assessment | null) => void,
   assessments: Assessment[], //to be changed to Assessment model
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import React, { use, useEffect, useState } from "react";
 import Loading from "../Loading";
 import { Assessment } from "@/types/assessment";
+import Modal from "./Modal";
 
 interface EditAssessmentModalProps {
     isOpen: boolean;
@@ -20,90 +21,86 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({isOpen, onClos
 
   const router = useRouter();
 
+  useEffect(() => {
+    setTitle(assessment?.Title)
+    assessment?.dueDate ? setDueDate(assessment?.dueDate.toString()) : ""
+    setTopic(assessment?.Topic)
+  },[assessment])
+
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     // Handle form submission logic
     console.log({ title, topic, dueDate, });
 
-    const new_assessment = JSON.stringify({
-      "title": title,
-      "topic": topic,
-      "class_id": "5cbb6db4-8601-4b16-a834-a5085437c707",
-      "due_date": dueDate as string,
-    //   "reading_file_name": file?.name,
-    })
+    const new_assessment: any = {"assessment_id": assessment.Assessmentid};
 
-    await fetch('http://localhost:3000/api/postassessment', { 
-      method: 'POST',
+    //check if the values are different from the original assessment
+    title !== assessment.Title ? new_assessment["title"] = title : undefined;
+    topic !== assessment.Topic ? new_assessment["topic"] = topic : undefined;
+    dueDate !== assessment.dueDate.toString() ? new_assessment["dueDate"] = dueDate.toString() : undefined;
+
+    console.log(new_assessment);
+
+    await fetch('http://localhost:3000/api/putassessment', { 
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: new_assessment,
+      body: JSON.stringify(new_assessment),
     });
+    setLoading(false);
+    onClose();
 
-    router.reload(); //reloads to display added assessment
+    router.reload();
   };
 
   return (
     <>
-    {loading ? <Loading /> : (
-      <form onSubmit={handleSubmit} className="text-black">
-          <div className="mb-4">
-            <label className="block mb-2">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Topic</label>
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block mb-2">Reading Material</label>
-            <div className="border border-gray-300 rounded p-4 text-center">
-              <div className="flex flex-col space-y-4   ...">
-                {/* {file ? (
-                  <p>{file.name}</p>
-                ) : (
-                  <div>
-                    <b>Upload file here</b>
-                  </div>
-                )} */}
-              </div>
+    <Modal title="Edit Assessment" onClose={onClose} isOpen={isOpen}>
+      {loading ? <Loading /> : (
+        <form onSubmit={handleSubmit} className="text-black">
+            <div className="mb-4">
+              <label className="block mb-2">Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
             </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
-            >
-              Create
-            </button>
-          </div> 
-      </form>
-    )}
+            <div className="mb-4">
+              <label className="block mb-2">Topic</label>
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-secondary text-black px-4 py-2 rounded hover:bg-secondary-dark"
+              >
+                Confirm
+              </button>
+            </div> 
+        </form>
+      )}
+    </Modal>
     </>
   );
 };

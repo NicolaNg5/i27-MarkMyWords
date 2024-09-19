@@ -13,7 +13,7 @@ import os
 from datetime import date
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 app = FastAPI()
 
 #Supabase Credentials:
@@ -236,6 +236,11 @@ def get_student(id:UUID):
     student = supabase.table("student").select("*").eq("Studentid",id).execute()
     return student
 
+@app.get("class/{id}/students")
+def get_class_students(id:UUID):
+    student = supabase.table("student").select("*").eq("class",id).execute()
+    return student
+
 #Get all classes
 @app.get("/classes")
 def get_classes():
@@ -377,7 +382,6 @@ def create_student(student:StudentSchema):
 
 #Create assessment:
 class AssessmentSchema(BaseModel):
-    id: str
     title: str
     topic: str
     class_id: str
@@ -420,30 +424,49 @@ def create_assessment(assessment: AssessmentSchema):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @app.put("/update_assessment")
-def update_assessment(updated_assessment: AssessmentSchema):
+def update_assessment(assessment_id: str, title: Optional[str] = None, topic: Optional[str] = None, due_date: Optional[str] = None):
 
-    due_date = datetime.strptime(updated_assessment.due_date, '%Y-%m-%d')
+    updated_assessment = {}
 
-    new_assessment = {
-        "Assessmentid": updated_assessment.id,
-        "Title": updated_assessment.title,
-        "Topic": updated_assessment.topic,
-        "Class": updated_assessment.class_id,
-        "dueDate": due_date.strftime('%Y-%m-%d'),
-        "ReadingFileName": updated_assessment.reading_file_name
-    }
+    if title:
+        updated_assessment["Title"] = title
+
+    if topic:
+        updated_assessment["Topic"] = topic
+    
+    if due_date:
+        try:
+            formatted_due_date = datetime.strptime(due_date, '%Y-%m-%d')
+            updated_assessment["dueDate"] = formatted_due_date.isoformat()
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format. Use 'YYYY-MM-DD' format")
+
+    print("updated_assessment:", updated_assessment)
 
     try:
-        result = supabase.table("Assessment").update(new_assessment).execute()
-        if result.data:
-            return {"message": "Assessment updated successfully", "assessment": result.data[0]}
+        if updated_assessment == {}: 
+            raise HTTPException(status_code=status.HTTP_200_OK, detail="No fields to update")
         else:
-            raise HTTPException(status_code=500, detail="Failed to update assessment")
+            print("Updating assessment...")
+            result = supabase.table("Assessment").update(updated_assessment).eq("Assessmentid", assessment_id).execute()
+            if result.data:
+                return {"message": "Assessment updated successfully", "assessment": result.data[0]}
+            else:
+                raise HTTPException(status_code=500, detail="Failed to update assessment")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-
-
+@app.delete("/delete_assessment/${assessment_id}")
+def delete_assessment(assessment_id: str):
+    try:
+        result = supabase.table("Assessment").delete().eq("Assessmentid", assessment_id).execute()
+        if result.data:
+            return {"message": "Assessment deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
 def get_assessment_file_content(assessment_id:str):

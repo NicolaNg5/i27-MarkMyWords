@@ -2,6 +2,7 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import Modal from './Modal';
 import { Question, QuestionType } from '@/types/question';
 import { Assessment } from '@/types/assessment';
+import Loading from '../Loading';
 
 interface DeleteAssessmentModalProps {
     isOpen: boolean;
@@ -10,17 +11,28 @@ interface DeleteAssessmentModalProps {
 }
 
 const DeleteAssessmentModal: React.FC<DeleteAssessmentModalProps> = ({ isOpen, onClose, assessment}) => {
-    
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
+
     },[])
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>): void {
-        event.preventDefault();
+    const handleSubmit = async(e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        // Delete the assessment
+        const res = await fetch(`/api/assessment_delete/${assessment.Assessmentid}`, {
+            method: 'DELETE',
+        });
+
+        setLoading(false);
         onClose();
     }
 
     return (
-        <Modal title="Delete Question" onClose={onClose} isOpen={isOpen}>
+        <Modal title="Delete Assessment" onClose={onClose} isOpen={isOpen}>
+            {loading ? <Loading /> : (
             <form onSubmit={handleSubmit} >
                 <div className=''>
                     <button
@@ -31,6 +43,7 @@ const DeleteAssessmentModal: React.FC<DeleteAssessmentModalProps> = ({ isOpen, o
                     </button>
                 </div>
             </form>
+            )}
         </Modal>
     );
 };

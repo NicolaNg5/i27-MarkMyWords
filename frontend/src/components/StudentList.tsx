@@ -16,7 +16,7 @@ const StudentList: React.FC<StudentListProps> = ({ students, onDeleteStudent }) 
         </div>
         <div className="overflow-y-auto border border-gray-100 bg-gray-100 p-1 pt-0" style={{ height: "400px" }}>
             <ul className="mt-2">
-                {students.map((student) => (
+                {students?.map((student) => (
                 <li key={student.name} className="flex items-center justify-between py-2 px-4 border-b m-1 border-gray-100 rounded-md bg-gray-300 hover:bg-gray-400">
                     <div className="flex items-center">
                         <span>{student.name}</span>
