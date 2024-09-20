@@ -1,0 +1,82 @@
+[
+    {
+      "id": "1",
+      "question": "Was the husband actually sick?",
+      "answer": "No, he was in distress due to lack of work and food.",
+      "category": "inferential",
+      "type": "SA",
+      "assessmentID": "1"
+    },
+    {
+      "id": "2",
+      "question": "What did Goldsmith promise the woman after visiting her husband?",
+      "answer": "He promised to give her medicine for her husband.",
+      "category": "literal",
+      "type": "SA",
+      "assessmentID": "1"
+    },
+    {
+      "id": "3",
+      "question": "What problem did the poor woman's husband have?",
+      "options": [
+        "He was very ill",
+        "He couldn't find his medicine",
+        "He was depressed and hungry",
+        "He didn't want to work"
+      ],
+      "answer": "He was depressed and hungry",
+      "category": "inferential",
+      "type": "MCQ",
+      "assessmentID": "1"
+    },
+    {
+      "id": "4",
+      "question": "What is the main theme of this story?",
+      "options": [
+        "The importance of education",
+        "The dangers of poverty",
+        "The power of kindness",
+        "The struggle for success"
+      ],
+      "answer": "The power of kindness",
+      "category": "inferential",
+      "type": "MCQ",
+      "assessmentID": "1"
+    },
+    {
+      "id": "5",
+      "question": "Goldsmith was a compassionate man who cared for the poor.",
+      "options": ["True", "False"],
+      "answer": "True",
+      "category": "inferential",
+      "type": "FC",
+      "assessmentID": "1"
+    },
+    {
+      "id": "6",
+      "question": "Doctor Goldsmith's 'medicine' was actually money to help the family.",
+      "options": ["True", "False"],
+      "answer": "Agree",
+      "category": "literal",
+      "type": "FC",
+      "assessmentID": "1"
+    },
+    {
+      "id": "7",
+      "question": "Goldsmith was wealthy and had plenty of money to give away.",
+      "options": ["True", "False"],
+      "answer": "Incorrect",
+      "category": "inferential",
+      "type": "FC",
+      "assessmentID": "1"
+    },
+    {
+      "id": "8",
+      "question": "Please highlight in the paragraph: Why was Oliver Goldsmith called Doctor Goldsmith?",
+      "answer": "He was sometimes called Doctor Goldsmith; for he had studied to be a\nphysician.",
+      "category": "literal",
+      "type": "Highlighting",
+      "assessmentID": "1"
+    }
+  ]
+  

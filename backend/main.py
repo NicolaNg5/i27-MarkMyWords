@@ -92,7 +92,7 @@ uploaded_file = None
 def get_prompts():
     return {"prompts": [prompt["name"] for prompt in PROMPTS.values()]}
 
-uploaded_file = None
+uploaded_file = None 
 
 @app.post("/upload")
 async def upload_file(request: Request):
@@ -100,10 +100,10 @@ async def upload_file(request: Request):
     print("Backend - Receiving File Content...")
     try:
         body_text = (await request.body()).decode("utf-8")
-        file_name, file_content = body_text.split("\n", 1)
+        file_name, file_content = body_text.split("\n", 1)  
 
         uploaded_file = file_name
-
+        
         print("File Content:", file_content)
         print("File Name:", file_name)
 
@@ -111,7 +111,7 @@ async def upload_file(request: Request):
             return {"error": "No file content received"}
 
         file_path = os.path.join("uploads", file_name)
-        with open(file_path, "w", encoding="utf-8") as f:
+        with open(file_path, "w", encoding="utf-8") as f: 
             f.write(file_content)
         print(f"File saved to: {file_path}")
 
@@ -123,7 +123,7 @@ async def upload_file(request: Request):
 
 @app.post("/generate")
 async def generate_response(request: Request):
-    global uploaded_file
+    global uploaded_file 
     print("Backend - Generating Response...")
     try:
         prompt_key = (await request.body()).decode("utf-8")
@@ -142,7 +142,11 @@ async def generate_response(request: Request):
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
 
-        response = model.generate_content(contents=[file_content, selected_prompt["content"]])
+        response = model.generate_content(contents=[file_content, selected_prompt["content"], 
+        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
+        ])
+        print("Raw Response Text:", response.text) 
+        
         response_text = response.text
 
         response_data = {
@@ -151,17 +155,17 @@ async def generate_response(request: Request):
             "file_name": uploaded_file,
         }
 
-        save_response(response_data, prompt_key)
+        save_response(response_data, prompt_key) 
 
         return {"response": response_text}
     except Exception as e:
         print("Backend - General Error:", e)
-        return {"error": f"An error occurred: {str(e)}"}
-
+        return {"error": f"An error occurred: {str(e)}"} 
+    
 @app.post("/save_questions")
 async def save_questions(request: Request):
     """
-    Saves the selected questions to a JSON file.
+    Saves the selected questions to a JSON file. 
     Modify to save into the actual database.
     For Tom and Nicola.
     """
@@ -187,6 +191,109 @@ async def save_questions(request: Request):
     except Exception as e:
         print("Error saving questions:", e)
         return {"error": f"An error occurred: {str(e)}"}
+    
+@app.post("/submit_quiz")
+async def submit_quiz(request: Request):
+    try:
+        quiz_data = await request.json()
+        print("Quiz Data Received:", quiz_data)
+
+        return {"message": "Quiz received successfully!"}
+
+    except Exception as e:
+        print("Backend - General Error:", e)
+        return {"error": f"An error occurred: {str(e)}"}
+    
+@app.post("/submit_answers")
+async def submit_answers(request: Request):
+    try:
+        answers_text = (await request.body()).decode("utf-8")
+        print("Answers Received:", answers_text) 
+
+        return {"message": "Answers received successfully!"}
+
+    except Exception as e:
+        print("Backend - General Error:", e)
+        return {"error": f"An error occurred: {str(e)}"}
+    
+@app.post("/analyse_answers")
+async def analyse_answers():
+    with open("uploads/DoctorGoldsmith.txt", "r", encoding="utf-8") as f:
+        reference_text = f.read()
+    with open("demoQuestions.json", "r", encoding="utf-8") as f:
+        demo_questions = json.load(f)
+    with open("demoAns.json", "r", encoding="utf-8") as f:
+        demo_ans = json.load(f)
+    
+    #Group answers by student and assessment
+    student_answers = {}
+    for answer in demo_ans:
+        student_id = answer["studentID"]
+        assessment_id = answer["assessmentID"]
+        if student_id not in student_answers:
+            student_answers[student_id] = {}
+        if assessment_id not in student_answers[student_id]:
+            student_answers[student_id][assessment_id] = []
+        student_answers[student_id][assessment_id].append(answer)
+
+    analysis_results = []
+    for student_id, assessments in student_answers.items():
+        for assessment_id, answers in assessments.items():
+            analysis_prompt = f"Reference Text: {reference_text}\n\n"
+            for answer in answers:
+                question = next((q for q in demo_questions if q["id"] == answer["questionID"]), None)
+                if question:
+                    analysis_prompt += "Question: " + question['question'] + "\n"
+                    analysis_prompt += "Student Answer: " + answer['answer'] + "\n"
+                    analysis_prompt += "Suggested Answer: " + question['answer'] + "\n"
+            analysis_prompt += "Please provide the analysis as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"analysis\": \"<your analysis of the student's reading comprehension based on their answers>\"}"
+
+            response = model.generate_content(contents=[analysis_prompt])
+            analysis = response.text
+            #print(analysis)
+
+            #Extract analysis from JSON format
+            try:
+                analysis_json = json.loads(analysis)
+                analysis_text = analysis_json.get("analysis")
+                print(analysis_text + "\n")
+            except:
+                analysis_text = "Error in extracting analysis."
+
+            strength_prompt = "Student's answers analysis: " + analysis + "\nWhat are the strengths of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"strengths\": \"strength 1, strength 2,...\"}. No yapping and just provide brief strengths. They should be about the student's reading comprehension in general and not for this specific reading material."
+            weakness_prompt = "Student's answers analysis: " + analysis + "\nWhat are the weaknesses of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"weaknesses\": \"weakness 1, weakness 2,...\"}. No yapping and just provide brief weaknesses. They should be about the student's reading comprehension in general and not for this specific reading material."
+
+            strength_response = model.generate_content(contents=[strength_prompt])
+            weakness_response = model.generate_content(contents=[weakness_prompt])
+
+            #Extract strengths and weaknesses
+            try:
+                strengths = strength_response.text
+                #print(strengths + "\n")
+                strength_json = json.loads(strengths)
+                strength_text = strength_json.get("strengths")
+                print(strength_text + "\n")
+            except:
+                strength_text = ""
+            try:
+                weaknesses = weakness_response.text
+                #print(weaknesses + "\n")
+                weakness_json = json.loads(weaknesses)
+                weakness_text = weakness_json.get("weaknesses")
+                print(weakness_text + "\n")
+            except:
+                weakness_text = ""
+
+            analysis_results.append({
+                "studentID": student_id,
+                "assessmentID": assessment_id,
+                "feedback": analysis_text,
+                "strengths": strength_text,
+                "weaknesses": weakness_text
+            })
+
+    print("Analysis Results:", analysis_results) 
+    return analysis_results
 
 #--------------------------------------------------------------------------------------#
 

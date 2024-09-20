@@ -12,4 +12,6 @@ export interface Question {
     category?: string,
     type: QuestionType,
     options?: string[],
+    answer: string
+    content?: string;
 }
