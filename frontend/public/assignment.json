@@ -1,0 +1,10 @@
+{
+  "assessment": {
+    "Assessmentid": "12345",
+    "ReadingMaterialID": "RomeoJuliet",
+    "Title": "Romeo & Juliet",
+    "Topic": "Shakespearean Literature",
+    "Class": "7th Grade",
+    "dueDate": "2024-09-03"
+  }
+}
