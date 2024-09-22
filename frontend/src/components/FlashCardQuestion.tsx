@@ -24,8 +24,8 @@ const FlashcardQuestion: React.FC<FlashcardQuestionProps> = ({
   // Initialize state for remaining statements, filtering out any that are already in savedAnswer
   const [remainingStatements, setRemainingStatements] = useState<string[]>(
     savedAnswer
-      ? (question.options || []).filter(option => !savedAnswer.true.includes(option) && !savedAnswer.false.includes(option))
-      : question.options || []
+      ? (question.Options || []).filter(option => !savedAnswer.true.includes(option) && !savedAnswer.false.includes(option))
+      : question.Options || []
   );
 
   // Effect to update state when question or savedAnswer changes
@@ -33,11 +33,11 @@ const FlashcardQuestion: React.FC<FlashcardQuestionProps> = ({
     if (savedAnswer) {
       setAnswer(savedAnswer);
       setRemainingStatements(
-        (question.options || []).filter(option => !savedAnswer.true.includes(option) && !savedAnswer.false.includes(option))
+        (question.Options || []).filter(option => !savedAnswer.true.includes(option) && !savedAnswer.false.includes(option))
       );
     } else {
       setAnswer({ true: [], false: [] });
-      setRemainingStatements(question.options || []);
+      setRemainingStatements(question.Options || []);
     }
   }, [question, savedAnswer]);
 
