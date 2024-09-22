@@ -6,15 +6,19 @@ import { useState, useEffect } from "react";
 import { Question } from "@/types/question";
 import styles from "@/pages/test-supabase/testsupabase.module.css";
 //add StudentAnswer
-export default function AddStudentAnswer({
-  setAnswers,
-  questions,
-  students,
-  setError,
-}) {
+
+interface AddStudentAnswerProps {
+  setAnswers: (answers: StudentAnswer[]) => void;
+  questions: Question[];
+  students: Student[];
+  setError: (msg: string) => void;
+}
+
+
+const AddStudentAnswer: React.FC<AddStudentAnswerProps> = ({setAnswers, questions, students, setError}) => {
   const [questionID, setQuestionID] = useState("");
   const [studentID, setStudentID] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState<StudentAnswer[]>([]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -33,14 +37,14 @@ export default function AddStudentAnswer({
       const data = await res.json();
       if (res.ok) {
         // Update the students answer list
-        setAnswers((prevAnswers: StudentAnswer[]) => [
-          ...prevAnswers,
-          data.student_answer,
-        ]);
+        // setAnswers((prevAnswers: StudentAnswer[]) => [
+        //   ...prevAnswers,
+        //   data.student_answer,
+        // ] as StudentAnswer[]);
         // Clear the form
         setQuestionID("");
         setStudentID("");
-        setAnswer("");
+        // setAnswer("");
       } else {
         setError("Failed to add student");
       }
@@ -83,11 +87,11 @@ export default function AddStudentAnswer({
 
           <input
             className={styles["form-input"]}
-            value={answer}
+            // value={answer}
             type="text"
             placeholder="Answer"
             required
-            onChange={(e) => setAnswer(e.target.value)}
+            // onChange={(e) => setAnswer(e.target.value)}
           />
 
           <button className={styles["form-button"]} type="submit">
@@ -98,3 +102,5 @@ export default function AddStudentAnswer({
     </>
   );
 }
+
+export default AddStudentAnswer;
