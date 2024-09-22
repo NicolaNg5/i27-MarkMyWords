@@ -51,7 +51,7 @@ export default function ReadingMaterialPage() {
           {/* Error handling */}
           {error && <div className="text-red-500 mb-4">{error}</div>}
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 overflow-y-auto"  style={{ height: "650px" }}>
             <p>{readingMaterial}</p>
           </div>
 

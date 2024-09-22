@@ -1,13 +1,10 @@
 import { Question, QuestionType } from '@/types/question';
-import React, { useState } from 'react';
-import { BiArrowFromLeft, BiArrowFromRight, BiMinusBack, BiPlus } from 'react-icons/bi';
-import { BsFileMinus, BsPenFill, BsPlusLg } from 'react-icons/bs';
+import React, { use, useEffect, useState } from 'react';
 import { FaMinusCircle, FaPlusCircle } from 'react-icons/fa';
-import { PiPencilBold, PiPencilCircle } from 'react-icons/pi';
 import { RiPencilFill } from 'react-icons/ri';
-import EditQuestionModal from './modals/EditQuestionModal';
 import { TbTrashFilled } from 'react-icons/tb';
 import DeleteQuestionModal from './modals/DeleteQuestionModal';
+import QuestionDetailsForm from './modals/QuestionDetailsForm';
 export enum ContainerType {
     Candidates,
     Quiz,
@@ -35,7 +32,9 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
     };
 
     const onEdit = (question: Question) => {    
+        setQuestions((prev: any) => prev.map((q:Question) => q.QuestionID === question.QuestionID ? question : q));
     }
+
 
     return (
         <>
@@ -157,7 +156,7 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                             </li>
                             )})}
                 </ul>
-                <EditQuestionModal isOpen={isModalOpen && modalId==1} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question}/>
+                <QuestionDetailsForm title="Edit Question" isOpen={isModalOpen && modalId==1} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question} onSubmit={onEdit}/>
                 <DeleteQuestionModal isOpen={isModalOpen && modalId==2} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question} onSubmit={onDelete}/>
             </div>   
         </>         

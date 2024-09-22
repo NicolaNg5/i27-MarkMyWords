@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/components/Loading";
-import CreateQuestionModal from "@/components/modals/AddQuestionModal";
+import QuestionDetailsForm from "@/components/modals/QuestionDetailsForm";
 import GenerateQuestionsModal from "@/components/modals/GenerateQuestionsModal";
 import SaveQuestionPoolModal from "@/components/modals/SaveQuestionPool";
 import QuestionContainer, { ContainerType } from "@/components/QuestionContainer";
@@ -57,9 +57,10 @@ const QuestionPool: React.FC = () => {
         setNewQuestions((prev) => prev.filter((q) => q.QuestionID !== question.QuestionID));
     };
     
-    const handleCreateQuestion = () => {
-        // console.log(questions)
+    const handleCreateQuestion = (question: Question) => {
         // Implement your logic for creating a new question
+        question.AssessmentID = id;
+        setQuestions((prev) => prev ? [...prev, question] : [question]);
     };
 
     const handleSave = async () => {
@@ -153,10 +154,11 @@ const QuestionPool: React.FC = () => {
                         isOpen={isModalOpen && modalId==1}
                         setQuestions={setQuestions}
                     />
-                    <CreateQuestionModal 
+                    <QuestionDetailsForm 
                         onClose={() =>{setIsModalOpen(false)}} 
                         isOpen={isModalOpen && modalId==2}
-                        onSubmit={() => {handleCreateQuestion()}}
+                        title="Create Question"
+                        onSubmit={handleCreateQuestion}
                     />
                     <SaveQuestionPoolModal
                         onClose={() =>{setIsModalOpen(false)}} 
