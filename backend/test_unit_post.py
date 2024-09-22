@@ -247,7 +247,7 @@ class TestAPIEndpoints(unittest.TestCase):
             "assessmentID": "25b45eb9-8c01-4872-a560-ada7d8406a02",
             "studentID": "067207b7-eb56-4e06-978f-d6a419e6ca20",
             "analysis": "Student performed well in the test."
-            # Missing 'marks' field
+            # Missing 'marks' field, so it should not be counted 
         }
 
         # Send a POST request with missing required fields
