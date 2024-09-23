@@ -72,13 +72,37 @@ def save_response(response_data, prompt_name):
         file_path = "questions/highlights.json"
 
     if file_path:
-        response_file_content = json.dumps(response_data, indent=3)
-        supabase.storage.from_("upload").upload(file_path, response_file_content.encode("utf-8"))
+        # Check if the file already exists in the bucket
+        existing_file = supabase.storage.from_("upload").list(path=file_path)
+
+        if existing_file:
+            # If the file exists, retrieve its content
+            existing_content = supabase.storage.from_("upload").download(file_path)
+            existing_data = json.loads(existing_content.decode('utf-8'))
+        else:
+            existing_data = []
+
+        # Create the new entry
+        new_entry = {
+            "filename": response_data["file_name"],
+            "questions": response_data["questions"],
+            "category": "SA"
+        }
+
+        # Append the new entry to the existing data
+        existing_data.append(new_entry)
+
+        # Convert the updated data to JSON string
+        updated_content = json.dumps(existing_data, indent=3)
+
+        # Upload the updated content to the Supabase bucket
+        supabase.storage.from_("upload").upload(file_path, updated_content.encode('utf-8'))
     else:
         print(f"Unknown prompt name: {prompt_name}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown prompt name: {prompt_name}")
-    
+
     return response_data
+
 
 
 
