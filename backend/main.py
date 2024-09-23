@@ -254,10 +254,13 @@ async def analyse_answers():
                 analysis = response.text
                 #print(analysis)
                 
-                #Extract analysis from JSON format
-                analysis_json = json.loads(analysis)
-                analysis_text = analysis_json.get("analysis")
-                print(analysis_text + "\n")
+                try:
+                    #Extract analysis from JSON format
+                    analysis_json = json.loads(analysis)
+                    analysis_text = analysis_json.get("analysis")
+                    print(analysis_text + "\n")
+                except:
+                    analysis_text = ""
 
             strength_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the strengths of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"strengths\": \"strength 1, strength 2,...\"}. No yapping and just provide brief strengths. They should be about the student's reading comprehension in general and not for this specific reading material."
             weakness_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the weaknesses of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"weaknesses\": \"weakness 1, weakness 2,...\"}. No yapping and just provide brief weaknesses. They should be about the student's reading comprehension in general and not for this specific reading material."
@@ -268,18 +271,24 @@ async def analyse_answers():
                 strength_response = model.generate_content(contents=[strength_prompt])
                 strengths = strength_response.text
                 #print(strengths + "\n")
-                strength_json = json.loads(strengths)
-                strength_text = strength_json.get("strengths")
-                print(strength_text + "\n")
+                try: 
+                    strength_json = json.loads(strengths)
+                    strength_text = strength_json.get("strengths")
+                    print(strength_text + "\n")
+                except:
+                    strength_text = ""
             
             weakness_text = ""
             while not weakness_text:
                 weakness_response = model.generate_content(contents=[weakness_prompt])
                 weaknesses = weakness_response.text
                 #print(weaknesses + "\n")
-                weakness_json = json.loads(weaknesses)
-                weakness_text = weakness_json.get("weaknesses")
-                print(weakness_text + "\n")
+                try:
+                    weakness_json = json.loads(weaknesses)
+                    weakness_text = weakness_json.get("weaknesses")
+                    print(weakness_text + "\n")
+                except:
+                    weakness_text = ""
 
             analysis_results.append({
                 "studentID": student_id,
@@ -291,7 +300,7 @@ async def analyse_answers():
 
     print("Analysis Results:")
     for result in analysis_results:
-        print(result)
+        print(result, "\n")
     return analysis_results
 
 #--------------------------------------------------------------------------------------#
