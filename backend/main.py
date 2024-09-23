@@ -10,6 +10,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import json
 import os
+import io
 from datetime import date
 from datetime import datetime
 from enum import Enum
@@ -50,43 +51,29 @@ model = GenerativeModel(
     safety_settings=safety_settings,
 )
 
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
-if not os.path.exists("questions"):
-    os.makedirs("questions")
+# if not os.path.exists("uploads"):
+#     os.makedirs("uploads")
+# if not os.path.exists("questions"):
+#     os.makedirs("questions")
 
-def save_response(response_data, prompt_name):
-    file_path = None
-
+def save_response(response_data, prompt_name, file_name):
     if prompt_name == "Analyse Reading Material":
-        file_path = "analysis.json"
-        response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("response")}
+        file_path = f"questions/analysis/{file_name}.json"
     elif prompt_name == "10 Short Answers":
         file_path = "questions/shortAns.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "SA"}
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "MCQ"}
     elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
         file_path = "questions/cards.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
-        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("response"), "category": "HL"}
+    else:
+        return
 
-    if file_path:
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                existing_data = json.load(f)
-        except FileNotFoundError:
-            existing_data = []
+    response_file_content = json.dumps(response_data, indent=3)
+    supabase.storage.from_("upload").upload(file_path, response_file_content.encode("utf-8"))
 
-        existing_data.append(response_data)
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(existing_data, f, indent=3)
-
-uploaded_file = None
+# uploaded_file = None
 
 
 #AI API endpoints
@@ -104,19 +91,20 @@ async def upload_file(request: Request):
         body_text = (await request.body()).decode("utf-8")
         file_name, file_content = body_text.split("\n", 1)  
 
-        uploaded_file = file_name
+        #uploaded_file = file_name
         
-        print("File Content:", file_content)
-        print("File Name:", file_name)
-
-        if not file_content:
-            return {"error": "No file content received"}
-
-        file_path = os.path.join("uploads", file_name)
-        with open(file_path, "w", encoding="utf-8") as f: 
-            f.write(file_content)
-        print(f"File saved to: {file_path}")
-
+        #Supabase bucket config + connect
+        supabase: Client = create_client(url, key)
+        bucket_name = "upload"
+        
+        # Check if the file already exists in Supabase Storage
+        existing_file = supabase.storage.from_(bucket_name).list(path=file_name)
+        if existing_file:
+            return {"error": f"File with name '{file_name}' already exists"}
+        
+        #Upload file to Supabase storage
+        file_path = f"texts/{file_name}"
+        supabase.storage.from_("upload").upload(file_path, file_content.encode("utf-8"))
         return {"message": f"File content received and saved as {file_name}"}
 
     except Exception as e:
@@ -125,7 +113,7 @@ async def upload_file(request: Request):
 
 @app.post("/generate")
 async def generate_response(request: Request):
-    global uploaded_file 
+    #global uploaded_file 
     print("Backend - Generating Response...")
     try:
         prompt_key = (await request.body()).decode("utf-8")
@@ -136,13 +124,13 @@ async def generate_response(request: Request):
         )
         if selected_prompt is None:
             return {"error": "Invalid prompt name"}
-
-        file_path = os.path.join("uploads", uploaded_file) if uploaded_file else None
-        if not file_path or not os.path.exists(file_path):
-            return {"error": "No file uploaded yet."}
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+        
+        file_name = (await request.body()).decode("utf-8").split("\n")[0]
+        print("File Name:", file_name)
+        
+        # Retrieve file content from Supabase Storage
+        file_path = f"texts/{file_name}"
+        file_content = supabase.storage.from_("upload").download(file_path)
 
         response = model.generate_content(contents=[file_content, selected_prompt["content"], 
         "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
@@ -436,28 +424,23 @@ def create_assessment(assessment: AssessmentSchema):
 
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
-def get_assessment_file_content(assessment_id:str):
+def get_assessment_file_content(assessment_id: str):
     try:
-        #retrieve assessment based on assessment_id from supa
+        # Retrieve assessment based on assessment_id from Supabase
         assessment = supabase.table("Assessment").select("*").eq("Assessmentid", assessment_id).execute()
         if not assessment.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
-        #retrieve file name from table
+        
+        # Retrieve file name from table
         reading_file_name = assessment.data[0]['ReadingFileName']
         
-        #creaate file path:
-        file_path = os.path.join("uploads", reading_file_name)
+        # Construct the file path within the "texts" folder
+        file_path = f"texts/{reading_file_name}"
         
-        #Check if the file exists
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
-        
-        #Retrieve file content:
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+        # Retrieve file content from Supabase Storage
+        file_content = supabase.storage.from_("upload").download(file_path)
         
         return {"file_content": file_content}
-    
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

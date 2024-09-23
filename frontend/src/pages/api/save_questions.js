@@ -3,14 +3,11 @@ export default async function handler(req, res) {
     try {
       console.log("Raw Request Body:", req.body);
 
-      const response = await fetch(
-        "https://i27-markmywords.vercel.app/save_questions",
-        {
-          method: "POST",
-          headers: { "Content-Type": "text/plain; charset=utf-8" },
-          body: req.body,
-        }
-      );
+      const response = await fetch("http://localhost:8000/save_questions", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+        body: req.body,
+      });
 
       const data = await response.json();
       res.status(200).json(data);

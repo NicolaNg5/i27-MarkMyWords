@@ -6,3 +6,5 @@ supabase
 python-decouple
 pydantic[email]
 pydantic
+vercel-blob
+requests

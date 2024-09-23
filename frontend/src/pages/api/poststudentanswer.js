@@ -5,17 +5,14 @@ export default async function handler(req, res) {
     const { question_id, student_id, answer } = req.body;
 
     try {
-      const response = await fetch(
-        "https://i27-markmywords.vercel.app/student_answer/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          //creating single obj from 3 props sent thru front end
-          body: JSON.stringify({ question_id, student_id, answer }), //NExt.js auto parse the json string in transmit to js object so have to parse back to json string to send to post api
-        }
-      );
+      const response = await fetch("http://localhost:8000/student_answer/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        //creating single obj from 3 props sent thru front end
+        body: JSON.stringify({ question_id, student_id, answer }), //NExt.js auto parse the json string in transmit to js object so have to parse back to json string to send to post api
+      });
 
       const data = await response.json();
 
