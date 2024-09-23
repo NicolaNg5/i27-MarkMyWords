@@ -53,18 +53,23 @@ model = GenerativeModel(
 
 def save_response(response_data, prompt_name, file_name):
     file_path = None
+    category = None
 
     if prompt_name == "Analyse Reading Material":
         file_path = "analysis.json"
         response_data = {"filename": response_data.get("file_name"), "analysis": response_data.get("questions")}
     elif prompt_name == "10 Short Answers":
         file_path = "questions/shortAns.json"
+        category = "SA"
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
+        category = "MCQ"
     elif prompt_name in ["10 True or False", "10 Agree or Disagree", "10 Correct or Incorrect"]:
         file_path = "questions/cards.json"
+        category = "FC"
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
+        category = "HL"
 
     if file_path:
         try:
@@ -76,11 +81,14 @@ def save_response(response_data, prompt_name, file_name):
             existing_data = []
 
         # Create the new entry
-        new_entry = {
-            "filename": file_name,
-            "questions": response_data["questions"],
-            "category": "SA"
-        }
+        if prompt_name == "Analyse Reading Material":
+            new_entry = response_data
+        else:
+            new_entry = {
+                "filename": file_name,
+                "questions": response_data["questions"],
+                "category": category
+            }
 
         # Append the new entry to the existing data
         existing_data.append(new_entry)
@@ -105,6 +113,7 @@ def save_response(response_data, prompt_name, file_name):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown prompt name: {prompt_name}")
 
     return new_entry
+
 
 
 uploaded_file = None
