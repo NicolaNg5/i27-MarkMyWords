@@ -51,12 +51,7 @@ model = GenerativeModel(
     safety_settings=safety_settings,
 )
 
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
-if not os.path.exists("questions"):
-    os.makedirs("questions")
-
-def save_response(response_data, prompt_name):
+def save_response(response_data, prompt_name, file_name):
     file_path = None
 
     if prompt_name == "Analyse Reading Material":
@@ -66,25 +61,23 @@ def save_response(response_data, prompt_name):
         file_path = "questions/shortAns.json"
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
-    elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
+    elif prompt_name in ["10 True or False", "10 Agree or Disagree", "10 Correct or Incorrect"]:
         file_path = "questions/cards.json"
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
 
     if file_path:
-        # Check if the file already exists in the bucket
-        existing_file = supabase.storage.from_("upload").list(path=file_path)
-
-        if existing_file:
-            # If the file exists, retrieve its content
+        try:
+            # Try to retrieve the existing file content
             existing_content = supabase.storage.from_("upload").download(file_path)
             existing_data = json.loads(existing_content.decode('utf-8'))
-        else:
+        except Exception as e:
+            print(f"Error retrieving existing file: {str(e)}")
             existing_data = []
 
         # Create the new entry
         new_entry = {
-            "filename": response_data["file_name"],
+            "filename": file_name,
             "questions": response_data["questions"],
             "category": "SA"
         }
@@ -95,15 +88,22 @@ def save_response(response_data, prompt_name):
         # Convert the updated data to JSON string
         updated_content = json.dumps(existing_data, indent=3)
 
-        # Upload the updated content to the Supabase bucket
-        supabase.storage.from_("upload").upload(file_path, updated_content.encode('utf-8'))
+        try:
+            # Use upsert option to create or update the file
+            result = supabase.storage.from_("upload").upload(
+                file_path,
+                updated_content.encode('utf-8'),
+                file_options={"content-type": "application/json", "upsert": "true"}
+            )
+            print(f"File {'updated' if result else 'created'} successfully")
+        except Exception as e:
+            print(f"Error updating/creating file: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     else:
         print(f"Unknown prompt name: {prompt_name}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown prompt name: {prompt_name}")
 
     return response_data
-
-
 
 
 uploaded_file = None
@@ -148,7 +148,8 @@ async def upload_file(request: Request):
 @app.get("/generate")
 async def generate_response(prompt_key: str, assessmentId: str):
     global uploaded_file
-    print("Backend - Generating Response...")
+    file_name = uploaded_file
+    print("Backend - Generating Response...", file_name)
 
     try:
         print("Prompt Key:", prompt_key)
@@ -172,10 +173,10 @@ async def generate_response(prompt_key: str, assessmentId: str):
         response_data = {
             "prompt": selected_prompt["name"],
             "questions": response_text,
-            "file_name": uploaded_file,
+            "file_name": file_name,
         }
 
-        response_final = save_response(response_data, prompt_key) 
+        response_final = save_response(response_data, prompt_key, file_name) 
 
         return {"response": response_final}
     except Exception as e:
