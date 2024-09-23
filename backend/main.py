@@ -84,6 +84,7 @@ def save_response(response_data, prompt_name, file_name):
 
         # Append the new entry to the existing data
         existing_data.append(new_entry)
+        print("Existing", existing_data)
 
         # Convert the updated data to JSON string
         updated_content = json.dumps(existing_data, indent=3)
@@ -103,7 +104,7 @@ def save_response(response_data, prompt_name, file_name):
         print(f"Unknown prompt name: {prompt_name}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown prompt name: {prompt_name}")
 
-    return response_data
+    return new_entry
 
 
 uploaded_file = None
