@@ -32,34 +32,37 @@ const CreateAssessmentForm: React.FC = () => {
       reader.onload = (e) => {
         setFileContent(e.target?.result as string);
       };
-      reader.readAsText(file)
+      reader.readAsText(file);
     }
   }, [file]);
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission logic
     if (file) {
       setError(null);
       console.log({ title, topic, dueDate, file });
       const new_assessment = JSON.stringify({
-        "title": title,
-        "topic": topic,
-        "class_id": "5cbb6db4-8601-4b16-a834-a5085437c707",
-        "due_date": dueDate as string,
-        "reading_file_name": file?.name,
-      })
-
-      await fetch('http://localhost:3000/api/postassessment', { 
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: new_assessment,
+        title: title,
+        topic: topic,
+        class_id: "5cbb6db4-8601-4b16-a834-a5085437c707",
+        due_date: dueDate as string,
+        reading_file_name: file?.name,
       });
-      
-      await fetch('http://localhost:3000/api/upload', { 
-        method: 'POST',
+
+      await fetch(
+        "https://mark-my-words-project-clsw.vercel.app/api/postassessment",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: new_assessment,
+        }
+      );
+
+      await fetch("https://mark-my-words-project-clsw.vercel.app/api/upload", {
+        method: "POST",
         body: file?.name + "\n" + fileContent,
       });
 
@@ -71,8 +74,10 @@ const CreateAssessmentForm: React.FC = () => {
 
   return (
     <>
-    {loading ? <Loading /> : (
-      <form onSubmit={handleSubmit} className="text-black">
+      {loading ? (
+        <Loading />
+      ) : (
+        <form onSubmit={handleSubmit} className="text-black">
           <div className="mb-4">
             <label className="block mb-2">Title</label>
             <input
@@ -128,24 +133,28 @@ const CreateAssessmentForm: React.FC = () => {
                     onChange={handleFileChange}
                     className="hidden "
                   />
-                  
                 </div>
               </div>
             </div>
           </div>
 
           <div className="flex justify-between">
-          <p className="text-red-500">{error}</p>
+            <p className="text-red-500">{error}</p>
             <button
               type="submit"
-              className={`px-4 py-2 rounded ` + (error ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-secondary text-black hover:bg-secondary-dark")}
+              className={
+                `px-4 py-2 rounded ` +
+                (error
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-secondary text-black hover:bg-secondary-dark")
+              }
               disabled={Boolean(error)}
             >
               Create
             </button>
-          </div> 
-      </form>
-    )}
+          </div>
+        </form>
+      )}
     </>
   );
 };

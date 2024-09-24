@@ -8,12 +8,16 @@ import { Assessment } from "@/types/assessment";
 import Modal from "./Modal";
 
 interface EditAssessmentModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    assessment: Assessment;
+  isOpen: boolean;
+  onClose: () => void;
+  assessment: Assessment;
 }
 
-const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({isOpen, onClose, assessment}) => {
+const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({
+  isOpen,
+  onClose,
+  assessment,
+}) => {
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -22,33 +26,38 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({isOpen, onClos
   const router = useRouter();
 
   useEffect(() => {
-    setTitle(assessment?.Title)
-    assessment?.dueDate ? setDueDate(assessment?.dueDate.toString()) : ""
-    setTopic(assessment?.Topic)
-  },[assessment])
+    setTitle(assessment?.Title);
+    assessment?.dueDate ? setDueDate(assessment?.dueDate.toString()) : "";
+    setTopic(assessment?.Topic);
+  }, [assessment]);
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Handle form submission logic
-    console.log({ title, topic, dueDate, });
+    console.log({ title, topic, dueDate });
 
-    const new_assessment: any = {"assessment_id": assessment.Assessmentid};
+    const new_assessment: any = { assessment_id: assessment.Assessmentid };
 
     //check if the values are different from the original assessment
-    title !== assessment.Title ? new_assessment["title"] = title : undefined;
-    topic !== assessment.Topic ? new_assessment["topic"] = topic : undefined;
-    dueDate !== assessment.dueDate.toString() ? new_assessment["dueDate"] = dueDate.toString() : undefined;
+    title !== assessment.Title ? (new_assessment["title"] = title) : undefined;
+    topic !== assessment.Topic ? (new_assessment["topic"] = topic) : undefined;
+    dueDate !== assessment.dueDate.toString()
+      ? (new_assessment["dueDate"] = dueDate.toString())
+      : undefined;
 
     console.log(new_assessment);
 
-    await fetch('http://localhost:3000/api/putassessment', { 
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(new_assessment),
-    });
+    await fetch(
+      "https://mark-my-words-project-clsw.vercel.app/api/putassessment",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(new_assessment),
+      }
+    );
     setLoading(false);
     onClose();
 
@@ -57,9 +66,11 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({isOpen, onClos
 
   return (
     <>
-    <Modal title="Edit Assessment" onClose={onClose} isOpen={isOpen}>
-      {loading ? <Loading /> : (
-        <form onSubmit={handleSubmit} className="text-black">
+      <Modal title="Edit Assessment" onClose={onClose} isOpen={isOpen}>
+        {loading ? (
+          <Loading />
+        ) : (
+          <form onSubmit={handleSubmit} className="text-black">
             <div className="mb-4">
               <label className="block mb-2">Title</label>
               <input
@@ -97,10 +108,10 @@ const EditAssessmentModal: React.FC<EditAssessmentModalProps> = ({isOpen, onClos
               >
                 Confirm
               </button>
-            </div> 
-        </form>
-      )}
-    </Modal>
+            </div>
+          </form>
+        )}
+      </Modal>
     </>
   );
 };
