@@ -552,28 +552,23 @@ def delete_assessment(assessment_id: str):
     
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
-def get_assessment_file_content(assessment_id:str):
+def get_assessment_file_content(assessment_id: str):
     try:
-        #retrieve assessment based on assessment_id from supa
+        # Retrieve assessment based on assessment_id from Supabase
         assessment = supabase.table("Assessment").select("*").eq("Assessmentid", assessment_id).execute()
         if not assessment.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
-        #retrieve file name from table
+        
+        # Retrieve file name from table
         reading_file_name = assessment.data[0]['ReadingFileName']
         
-        #creaate file path:
-        file_path = os.path.join("uploads", reading_file_name)
+        # Construct the file path within the "texts" folder
+        file_path = f"texts/{reading_file_name}"
         
-        #Check if the file exists
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
-        
-        #Retrieve file content:
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_content = f.read()
+        # Retrieve file content from Supabase Storage
+        file_content = supabase.storage.from_("upload").download(file_path)
         
         return {"file_content": file_content}
-    
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
