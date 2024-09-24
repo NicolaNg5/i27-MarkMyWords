@@ -173,7 +173,13 @@ async def generate_response(prompt_key: str, assessmentId: str):
         print("Retrieve file content from assessmentId..")        
         file_content = get_assessment_file_content(assessmentId)["file_content"]
 
-        response = model.generate_content(contents=[file_content.decode("utf-8"), selected_prompt["content"], 
+        # Handle both bytes and string cases
+        if isinstance(file_content, bytes):
+            file_content = file_content.decode("utf-8")
+        elif not isinstance(file_content, str):
+            raise ValueError(f"Unexpected file_content type: {type(file_content)}")
+
+        response = model.generate_content(contents=[file_content, selected_prompt["content"], 
         "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
         ])
         print("Raw Response Text:", response.text) 
@@ -207,11 +213,36 @@ async def save_questions(request: Request):
 
         print("Backend - Parsed Questions:", questions)
 
-        # Save questions to local JSON file
-        file_path = os.path.join(os.path.dirname(__file__), "questionsDtb.json")
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(questions, f, indent=3)
+        # Save questions to bucket supabase
+        # File path in Supabase storage
+        file_path = "questionsDtb.json"
 
+        # Try to retrieve existing content from Supabase storage
+        try:
+            existing_content = supabase.storage.from_("upload").download(file_path)
+            existing_questions = json.loads(existing_content.decode('utf-8'))
+        except Exception as e:
+            print(f"File does not exist or error retrieving: {str(e)}")
+            existing_questions = []
+
+        # Append new questions to existing ones
+        existing_questions.extend(questions)
+
+        # Convert the updated data to JSON string
+        updated_content = json.dumps(existing_questions, indent=3)
+
+        # Upload the updated content to Supabase storage
+        try:
+            result = supabase.storage.from_("upload").upload(
+                file_path,
+                updated_content.encode('utf-8'),
+                file_options={"content-type": "application/json", "upsert": "true"}
+            )
+            print(f"File {'updated' if result else 'created'} successfully in Supabase storage")
+        except Exception as e:
+            print(f"Error updating/creating file in Supabase storage: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        
         # Save questions to Supabase database
         for question in questions:
             # Check if the question already exists
