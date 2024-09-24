@@ -11,20 +11,30 @@ import google.generativeai as genai
 import json
 import os
 import io
+import logging
 from datetime import date
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #Supabase Credentials:
 url = config("SUPABASE_URL")
 key = config("SUPABASE_KEY")
-
+API_KEY = config("API_KEY")
 supabase: Client = create_client(url,key)
 
 #AI GEMINI Credentials:
-API_KEY = "AIzaSyA8l6_LJc_cJzwzOVBFA2zu1z8Tg1-3zWM"
+
 MODEL_NAME = "gemini-1.5-pro"
 
 with open("prompts.json", "r") as f:
@@ -50,6 +60,11 @@ model = GenerativeModel(
     generation_config=config,
     safety_settings=safety_settings,
 )
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+if not os.path.exists("questions"):
+    os.makedirs("questions")
 
 def save_response(response_data, prompt_name, file_name):
     file_path = None
@@ -537,23 +552,28 @@ def delete_assessment(assessment_id: str):
     
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
-def get_assessment_file_content(assessment_id: str):
+def get_assessment_file_content(assessment_id:str):
     try:
-        # Retrieve assessment based on assessment_id from Supabase
+        #retrieve assessment based on assessment_id from supa
         assessment = supabase.table("Assessment").select("*").eq("Assessmentid", assessment_id).execute()
         if not assessment.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
-        
-        # Retrieve file name from table
+        #retrieve file name from table
         reading_file_name = assessment.data[0]['ReadingFileName']
         
-        # Construct the file path within the "texts" folder
-        file_path = f"texts/{reading_file_name}"
+        #creaate file path:
+        file_path = os.path.join("uploads", reading_file_name)
         
-        # Retrieve file content from Supabase Storage
-        file_content = supabase.storage.from_("upload").download(file_path)
+        #Check if the file exists
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+        
+        #Retrieve file content:
+        with open(file_path, "r", encoding="utf-8") as f:
+            file_content = f.read()
         
         return {"file_content": file_content}
+    
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
