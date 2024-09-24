@@ -323,6 +323,12 @@ def get_answer_answerid(answerid:UUID):
     answer = supabase.table("StudentAnswer").select("*").eq("AnswerID",answerid).execute()
     return answer
 
+#Get answer based on student id and question id
+@app.get("/studentanswer/{questionid}")
+def get_answer_studentid(questionid:UUID):
+    answer = supabase.table("StudentAnswer").select("*").eq("QuestionID",questionid).execute()
+    return answer
+
 #Get answer based on question id
 @app.get("/answerquesid/{questionid}")
 def get_answer_questionid(questionid:UUID):

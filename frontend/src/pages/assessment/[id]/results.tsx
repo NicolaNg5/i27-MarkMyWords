@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import SwitchButton from '@/components/SwitchButton';
-import Dropdown from '@/components/DropdownMenu';
 import DifficultyArea from '@/components/DifficultyArea';
 import ViewSelection from '@/components/ViewSelection';
 import ScoreDistribution from '@/components/ScoreDistribution';
@@ -9,10 +8,28 @@ import { useRouter } from 'next/router';
 // import { Assessment } from "@/types/assessment";
 // import { Student } from "@/types/student";
 import PerformanceTrend from '@/components/PerformanceTrend';
+import { Assessment } from '@/types/assessment';
+import { Student } from '@/types/student';
+import { format, set } from 'date-fns';
+import { Question } from '@/types/question';
+import { StudentAnswer } from '@/types/answer';
+import StudentAnswers from '@/components/StudentAnswers';
+
+export interface QuestionAnswers {
+  Question: Question;
+  Answers: StudentAnswer[];
+}
 
 const AssessmentResults: React.FC = () => {
   const [isStudentView, setIsStudentView] = useState(true);
-  const [selectedStudent, setSelectedStudent] = useState('Student1');
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
+  const [students, setStudents] = useState<Student[]>([])
+  const [error, setError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionAnswers, setQuestionAnswers] = useState<QuestionAnswers[]>([]);
+  const [answers, setAnswers] = useState<StudentAnswer[]>([]);
+  const [feedback, setFeedback] = useState<string>("");
   const [selectedView, setSelectedView] = useState<
     'Performance Trend' | 'Area of Difficulty' | 'Score Distribution' | 'Class Ranking'
   >('Area of Difficulty');
@@ -31,72 +48,91 @@ const AssessmentResults: React.FC = () => {
   }, [isStudentView]);
 
 
-  //to fetch real data
-  // const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
-  // const [students, setStudents] = useState<Student[]>([])
-  // useEffect(() => {
-  //   const fetchAssessment= async () => {
-  //     try {
-  //       const res = await fetch(`/api/assessment/${id}`);
-  //       const data = await res.json();
-  //       setAssessment(data?.data[0] as Assessment);
-  //     } catch (error) {
-  //       setError("Error fetching assessment");
-  //     }
-  //   }
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch(`/api/class_students/${assessment.Class}`);
+      const data = await res.json();
+      setStudents(data?.data as Student[]); //filled with array response
+      setSelectedStudent(data?.data[0].StudentID);
+    } catch (error) {
+      setError("Error fetching students");
+    }
+  };
 
-  //   const fetchStudents = async () => {
-  //     try {
-  //       const res = await fetch("/api/students");
-  //       const data = await res.json();
-  //       setStudents(data?.data as Student[]); //filled with array response
-  //     } catch (error) {
-  //       setError("Error fetching students");
-  //     }
-  //   };
-  //   fetchAssessment();
-  //   fetchStudents();
-  // }, []);
+  const fetchAssessment= async () => {
+    try {
+      const res = await fetch(`/api/assessment/${id}`);
+      const data = await res.json();
+      setAssessment(data?.data[0] as Assessment);
+    } catch (error) {
+      setError("Error fetching assessment");
+    }
+  }
+
+  const fetchAssessmentQuestions = async () => {
+    try {
+      const res = await fetch(`/api/question/${id}`);
+      const data = await res.json();
+      setQuestions(data?.data as Question[]);
+      setQuestionAnswers([]);
+    } catch (error) {
+      setError("Error fetching questions");
+    }
+  }
+
+  const fetchStudentAnswers = async (question: Question) => {
+    try {
+      const res = await fetch(`/api/studentanswer/${question.QuestionID}`);
+      const data = await res.json();
+      const QnA: QuestionAnswers = {
+        Question: question,
+        Answers: data?.data as StudentAnswer[]
+      }
+      //need to add duplicate check
+        setQuestionAnswers((prev) => prev ? [...prev, QnA] : [QnA]);
+    } catch (error) {
+      setError("Error fetching student answers");
+    }
+  }
+
+  const fetchStudentFeedback = async () => {
+    try {
+      //write handler
+      const res = await fetch(`/api/feedback/${selectedStudent}`);
+      const data = await res.json();
+      setFeedback(data?.data[0].Feedback);
+    } catch (error) {
+      setError("Error fetching feedback");
+    }
+  }
+
+  useEffect(() => {
+    fetchAssessment();
+  }, [id]);
+
+  useEffect(() => {
+    fetchStudents();
+    fetchAssessmentQuestions();
+  }, [assessment]);
+
+  useEffect(() => {
+    questions?.forEach((question) => {
+      fetchStudentAnswers(question);
+    });
+  }, [questions]);
+
+  useEffect(() => {
+    fetchStudentFeedback();
+  },[selectedStudent]);
 
   // Sample for student list
-  const students = ['Student1', 'Student2', 'Student3'];
-
-  // Number of incorrect answers
-  const incorrectAnswers = {
-    MCQ: { HARD: 5, MEDIUM: 3, EASY: 1 },
-    ShortAnswer: { HARD: 4, MEDIUM: 2, EASY: 0 },
-    Highlighting: { HARD: 6, MEDIUM: 0, EASY: 2 },
-    FlashCards: { HARD: 3, MEDIUM: 1, EASY: 0 },
-  };
-
-  const classRankings = [
-    { className: '7A', averageScore: 95 },
-    { className: '7B', averageScore: 90 },
-    { className: '7C', averageScore: 60 },
-  ];
-
-  // Sample student data associated with each class
-  const studentRankings = {
-    '7A': [
-      { id: 1, name: 'John Doe', score: 85 },
-      { id: 2, name: 'Mary Smith', score: 86 },
-      { id: 3, name: 'Tom Dang', score: 90 },
-    ],
-    '7B': [
-      { id: 4, name: 'Alice Johnson', score: 78 },
-      { id: 5, name: 'Bob Brown', score: 92 },
-    ],
-    '7C': [
-      { id: 6, name: 'Charlie Davis', score: 60 },
-    ],
-  };
   return (
     <div className="p-8">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
         <h1 className="text-xl font-bold">Assessment Result</h1>
-        <h2>Assessment Name</h2>
-        <h2>Due Date: 03/09/2024</h2>
+        <h2>{assessment.Title}</h2>
+        <h2>Due Date: {assessment?.dueDate ? format(assessment?.dueDate, 'dd-MM-yyyy').toString() : ""}</h2>
       </div>
 
       {/* Switch and Dropdown */}
@@ -106,22 +142,51 @@ const AssessmentResults: React.FC = () => {
           toggleSwitch={() => setIsStudentView(!isStudentView)}
         />
         {isStudentView && (
-          <Dropdown
-            options={students}
-            selectedOption={selectedStudent}
-            onSelect={setSelectedStudent}
-          />
+          <>
+            <select
+              value={selectedStudent}
+              onChange={(e) => setSelectedStudent(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2"
+            >
+              {students?.map((student) => (
+                <option key={student.Studentid} value={student.Studentid}>
+                  {student.name}
+                </option>
+              ))}
+            </select>
+          </>
         )}
       </div>
 
       {/* View Selection Buttons */}
-      <ViewSelection
+      {/* <ViewSelection
         isStudentView={isStudentView}
         selectedView={selectedView}
         setSelectedView={setSelectedView}
-      />
+      /> */}
 
-      {/* Conditionally Render Based on Selected View */}
+
+      {isStudentView ? (
+        <>
+          <StudentAnswers  studentId={selectedStudent} questionAnswer={questionAnswers}/>
+          <div className="my-5 gap-2">
+            <h3>Student Feedback</h3>
+            <div>
+              <textarea 
+                className="w-full h-32 border border-gray-300 rounded p-2 mt-2" 
+                placeholder="Enter feedback here"
+                defaultValue={feedback}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+
+        </>
+        )}
+
+      {/* Conditionally Render Based on Selected View
       {isStudentView ? (
         selectedView === 'Area of Difficulty' ? (
           <div className="grid grid-cols-4 gap-4">
@@ -157,7 +222,7 @@ const AssessmentResults: React.FC = () => {
         />
       ) : selectedView === 'Class Ranking' ? (
         <Ranking classRankings={classRankings} studentRankings={studentRankings} />
-      ) : null}
+      ) : null} */}
       <button
         className="bg-gray-500 text-white p-2 mt-6 rounded hover:bg-gray-700"
         onClick={() => window.history.back()}
@@ -169,3 +234,4 @@ const AssessmentResults: React.FC = () => {
 };
 
 export default AssessmentResults;
+

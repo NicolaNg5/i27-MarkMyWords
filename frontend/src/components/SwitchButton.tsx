@@ -10,7 +10,7 @@ const SwitchButton: React.FC<SwitchButtonProps> = ({ isOn, toggleSwitch }) => {
   const label = isOn ? 'View Results for Student' : 'View Results for Class';
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 px-3 py-3">
       <span>{label}</span>
       <button
         onClick={toggleSwitch}

@@ -5,6 +5,10 @@ import { RiPencilFill } from 'react-icons/ri';
 import { TbTrashFilled } from 'react-icons/tb';
 import DeleteQuestionModal from './modals/DeleteQuestionModal';
 import QuestionDetailsForm from './modals/QuestionDetailsForm';
+import MultipleChoice from './questions/MultipleChoice';
+import ShortAnswer from './questions/ShortAnswer';
+import Highlighting from './questions/Highlighting';
+import FlashCard from './questions/FlashCard';
 export enum ContainerType {
     Candidates,
     Quiz,
@@ -62,51 +66,16 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                                     {expanded === question.QuestionID && ( 
                                         <>
                                         {question.Type == QuestionType.MultipleChoice && (
-                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
-                                                <div className="flex gap-2 pb-3 px-3">
-                                                    <p><b>Category:</b> {question.Category}</p>
-                                                </div>
-                                                    <div className="flex items-center">
-                                                        {question.Options?.map((option, index) => ( 
-                                                            <div key={option} className={`gap-2 px-3`}>
-                                                                {index + 1}. {option}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                <div className="flex gap-2 pt-3 px-3">
-                                                    <p><b>Answer:</b> {question.Answer}</p>
-                                                </div>
-                                            </div>
+                                            <MultipleChoice question={question} />
                                         )}
                                         {question.Type == QuestionType.ShortAnswer && ( 
-                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
-                                                <div className="flex gap-2 pb-3 px-3">
-                                                    <p><b>Category:</b> {question.Category}</p>
-                                                </div>
-                                                <div className="gap-2 px-3">
-                                                    <p><b>Suggested Answer:</b> {question.Answer}</p>
-                                                </div>
-                                            </div>
+                                            <ShortAnswer question={question} />
                                         )}
                                         {question.Type == QuestionType.Highlighting && ( 
-                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
-                                                <div className="flex gap-2 pb-3 px-3">
-                                                    <p><b>Category:</b> {question.Category}</p>
-                                                </div>
-                                                <div className="gap-2 px-3">
-                                                    <p><b>Suggested Highlighted Section:</b> {question.Answer}</p>
-                                                </div>
-                                            </div>
+                                            <Highlighting question={question} />
                                         )}
                                         {question.Type == QuestionType.FlashCard && ( 
-                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
-                                                <div className="flex gap-2 pb-3 px-3">
-                                                    <p><b>Category:</b> {question.Category}</p>
-                                                </div>
-                                                <div className="gap-2 px-3">
-                                                    <p><b>Answer:</b> {question.Answer}</p>
-                                                </div>
-                                            </div>
+                                            <FlashCard question={question} />
                                         )}
                                         </>
                                     )}
