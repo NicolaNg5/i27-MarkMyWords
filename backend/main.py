@@ -35,13 +35,13 @@ supabase: Client = create_client(url,key)
 
 #AI GEMINI Credentials:
 
-MODEL_NAME = "gemini-1.5-pro"
+MODEL_NAME = "gemini-1.5-flash"
 
 with open("prompts.json", "r") as f:
     PROMPTS = json.load(f)
 
 config = {
-    "temperature": 0.9,
+    "temperature": 1,
     "top_k": 1,
     "top_p": 1,
     "max_output_tokens": 2048,
