@@ -28,7 +28,7 @@ with open("prompts.json", "r") as f:
     PROMPTS = json.load(f)
 
 config = {
-    "temperature": 0.9,
+    "temperature": 0.5,
     "top_k": 1,
     "top_p": 1,
     "max_output_tokens": 2048,
@@ -192,29 +192,60 @@ async def save_questions(request: Request):
         print("Error saving questions:", e)
         return {"error": f"An error occurred: {str(e)}"}
     
-@app.post("/submit_quiz")
-async def submit_quiz(request: Request):
+@app.get("/quiz") 
+async def get_quiz_questions():
+    """Endpoint to serve demoQus.json"""
     try:
-        quiz_data = await request.json()
-        print("Quiz Data Received:", quiz_data)
-
-        return {"message": "Quiz received successfully!"}
-
+        file_path = os.path.join(os.path.dirname(__file__), "demoQuestions.json")
+        with open(file_path, "r", encoding="utf-8") as f:
+            questions = json.load(f)
+        return {"questions": questions}
+    except FileNotFoundError:
+        return {"error": "demoQus.json not found"}, 404
     except Exception as e:
-        print("Backend - General Error:", e)
-        return {"error": f"An error occurred: {str(e)}"}
+        print("Error loading demo questions:", e)
+        return {"error": "Failed to load demo questions"}, 500
+    
+    
+@app.get("/reading_material")
+async def get_reading_material():
+    """Endpoint to serve DoctorGoldsmith.txt"""
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), "uploads", "DoctorGoldsmith.txt")
+        with open(file_path, "r", encoding="utf-8") as f:
+            text = f.read()
+        return {"text": text}
+    except FileNotFoundError:
+        return {"error": "File not found"}, 404
+    except Exception as e:
+        print("Error loading reference text:", e)
+        return {"error": "Failed to load reference text"}, 500
+
+class StudentAnswer(BaseModel):
+    ansID: str
+    questionID: str 
+    answer: str 
+    studentID: str
+    assessmentID: str
     
 @app.post("/submit_answers")
 async def submit_answers(request: Request):
     try:
-        answers_text = (await request.body()).decode("utf-8")
-        print("Answers Received:", answers_text) 
+        answers_data: List[StudentAnswer] = await request.json()
+        print("Answers Received:", answers_data)  
 
+        file_path = os.path.join(os.path.dirname(__file__), "stuAns.json") 
+        print("Saving answers to:", file_path) 
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(answers_data, f, indent=3)
+
+        
         return {"message": "Answers received successfully!"}
 
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
+    
     
 @app.post("/analyse_answers")
 async def analyse_answers():
@@ -222,12 +253,12 @@ async def analyse_answers():
         reference_text = f.read()
     with open("demoQuestions.json", "r", encoding="utf-8") as f:
         demo_questions = json.load(f)
-    with open("demoAns.json", "r", encoding="utf-8") as f:
-        demo_ans = json.load(f)
+    with open("stuAns.json", "r", encoding="utf-8") as f:
+            submitted_answers = json.load(f)
     
     #Group answers by student and assessment
     student_answers = {}
-    for answer in demo_ans:
+    for answer in submitted_answers:
         student_id = answer["studentID"]
         assessment_id = answer["assessmentID"]
         if student_id not in student_answers:
@@ -264,7 +295,7 @@ async def analyse_answers():
 
             strength_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the strengths of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"strengths\": \"strength 1, strength 2,...\"}. No yapping and just provide brief strengths. They should be about the student's reading comprehension in general and not for this specific reading material."
             weakness_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the weaknesses of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"weaknesses\": \"weakness 1, weakness 2,...\"}. No yapping and just provide brief weaknesses. They should be about the student's reading comprehension in general and not for this specific reading material."
-
+            
             #Extract strengths and weaknesses
             strength_text = ""
             while not strength_text:
@@ -274,7 +305,7 @@ async def analyse_answers():
                 try: 
                     strength_json = json.loads(strengths)
                     strength_text = strength_json.get("strengths")
-                    print(strength_text + "\n")
+                    print(f"Strengths: {strength_text}\n")
                 except:
                     strength_text = ""
             
@@ -286,16 +317,34 @@ async def analyse_answers():
                 try:
                     weakness_json = json.loads(weaknesses)
                     weakness_text = weakness_json.get("weaknesses")
-                    print(weakness_text + "\n")
+                    print(f"Weaknesses: {weakness_text}\n")
                 except:
                     weakness_text = ""
+            
+            rating_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\n Identified strengths: " + strengths + "\n Identified weaknesses: " + weaknesses + "\nFrom these analyses of the student's performance, strengths, and weaknesses, please rate the student's literal and inferential comprehension based on the given answers. Give a rating out of ten for each of literal comprehension and inferential comprehension. Note that the suggested answers will indicate a reading comprehension level of 9 to 10 out of 10. Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"literal_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\", \"inferential_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\"}." 
+            literal = ""
+            inferential = ""
+            while not literal and not inferential:
+                rating_response = model.generate_content(contents=[rating_prompt])
+                ratings = rating_response.text
+                #print(ratings + "\n")
+                try:
+                    rating_json = json.loads(ratings)
+                    literal = rating_json.get("literal_rating")
+                    inferential = rating_json.get("inferential_rating")
+                    print(f"Literal rating: {literal}\nInferential rating: {inferential}\n")
+                except:
+                    literal = ""
+                    inferential = ""
 
             analysis_results.append({
                 "studentID": student_id,
                 "assessmentID": assessment_id,
                 "feedback": analysis_text,
                 "strengths": strength_text,
-                "weaknesses": weakness_text
+                "weaknesses": weakness_text,
+                "literal_rating:": literal,
+                "inferential_rating": inferential
             })
 
     print("Analysis Results:")

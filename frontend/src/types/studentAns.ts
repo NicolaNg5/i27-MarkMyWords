@@ -1,6 +1,7 @@
 export interface StudentAnswer {
-    id: string,
+    ansID: string,
     questionID: string,
     answer: string
     studentID: string,
+    assessmentID?:string
 }
