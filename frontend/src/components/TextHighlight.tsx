@@ -68,7 +68,7 @@ const HighlightingQuestion: React.FC<HighlightingQuestionProps> = ({
 
 
       {/* Display the content with highlights */}
-      <div className="border bg-grey p-4 rounded-xl">
+      <div className="border bg-grey p-4 rounded-xl overflow-y-auto"  style={{ height: "400px" }}>
   <p
     ref={highlightRef}
     dangerouslySetInnerHTML={{ __html: highlightedContent }}

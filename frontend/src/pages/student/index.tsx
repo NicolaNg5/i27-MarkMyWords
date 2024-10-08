@@ -10,15 +10,16 @@ import TextHighlight from "@/components/TextHighlight";
 import { Question, QuestionType } from "@/types/question";
 import { StudentAnswer } from "@/types/studentAns";
 import { v4 as uuid } from "uuid";
+import { Assessment } from "@/types/assessment";
+import { FaHackerNewsSquare } from "react-icons/fa";
 
 interface FlashcardAnswer {
   true: string[];
   false: string[];
 }
-const AssessmentPage: React.FC = () => {
-  const router = useRouter();
-  const { id } = router.query;
+const StudentView: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionAnswers, setQuestionAnswers] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState<
     Record<string, string | FlashcardAnswer>
@@ -28,78 +29,115 @@ const AssessmentPage: React.FC = () => {
   const [referenceText, setReferenceText] = useState("");
   const [formattedQuestions, setFormattedQuestions] = useState<Question[]>([]);
   const [answersSubmitted, setAnswersSubmitted] = useState(false);
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const id = "c5f2d012-b6fc-4088-beb7-a73d7f5b3c7b"
+
+  const fetchAssessmentData = async () => {
+    try {
+      //Fetch questions for quiz
+      const res = await fetch(`/api/question/assessment/${id}`);
+      console.log(res)
+      const questionsData = await res.json();
+
+      if (questionsData.error) {
+        throw new Error(questionsData.error);
+      }
+
+      setQuestions(questionsData.questions);
+
+      // Fetch reading material
+      const textRes = await fetch("/api/reading_material");
+      const textData = await textRes.json();
+
+      if (textData.error) {
+        throw new Error(textData.error);
+      }
+
+      setReferenceText(textData.text);
+    } catch (error) {
+      console.error("Error fetching assessment data:", error);
+      setError("Failed to load assessment data.");
+    }
+  };
+  const fetchAssessment= async () => {
+    try {
+      const res = await fetch(`/api/assessment/${id}`);
+      const data = await res.json();
+      setAssessment(data?.data[0] as Assessment);
+    } catch (error) {
+      setError("Error fetching assessment");
+    }
+  }
+
+  const fetchReadingMaterial = async () => {
+    try {
+      const res = await fetch(`/api/assessment-content/${id}`);
+      const data = await res.json();
+      setReferenceText(data["file_content"] as string);
+    } catch (error) {
+      setError("Error fetching reading material: " + error); 
+    }
+  }
+
+  const fetchAssessmentQuestions = async () => {
+    try {
+      const res = await fetch(`/api/question/${id}`);
+      const data = await res.json();
+
+      setQuestions(data?.data as Question[]);
+      setCurrentQuestion(1)
+      setQuestionAnswers([]);
+    } catch (error) {
+      setError("Error fetching questions");
+    }
+  }
 
   useEffect(() => {
-    const fetchAssessmentData = async () => {
-      try {
-        //Fetch questions for quiz
-        const res = await fetch("/api/quiz");
-        const questionsData = await res.json();
+    // fetchAssessmentData();
+    fetchAssessment();
+    fetchReadingMaterial();
+  }, [id]);
 
-        if (questionsData.error) {
-          throw new Error(questionsData.error);
-        }
-
-        setQuestions(questionsData.questions);
-
-        // Fetch reading material
-        const textRes = await fetch("/api/reading_material");
-        const textData = await textRes.json();
-
-        if (textData.error) {
-          throw new Error(textData.error);
-        }
-
-        setReferenceText(textData.text);
-      } catch (error) {
-        console.error("Error fetching assessment data:", error);
-        setError("Failed to load assessment data.");
-      }
-    };
-
-    fetchAssessmentData();
-  }, []);
+  useEffect(() => {
+    fetchAssessmentQuestions();
+  }, [assessment]);
 
   // Convert questions
   useEffect(() => {
     let hasFormattedFlashcard = false;
-
-    const formatted = questions.filter((q) => {
-      if (q.type === QuestionType.FlashCard) {
-        if (hasFormattedFlashcard) {
-          return false;
-        } else {
-          hasFormattedFlashcard = true;
-          return true;
+    const flashcardQuestions: Question[] = questions.filter(
+      (q) => {
+        if(q.Type === QuestionType.FlashCard)
+          if (hasFormattedFlashcard) {
+            return false;
+          } else {
+            hasFormattedFlashcard = true;
+            return true;
+          }
         }
-      }
-      return true;
-    }).map((q) => {
-      if (q.type === QuestionType.FlashCard) {
+    );
+
+    const formatted: Question[] = flashcardQuestions.map((q: Question) => {
         // Combine True/False questions into a single Flashcard question
         return {
           ...q,
-          question: "Drag the cards to their correct field:",
-          type: QuestionType.FlashCard,
-          options: questions
+          Question: "Drag the cards to their correct field:",
+          Type: QuestionType.FlashCard,
+          Options: questions
             .filter(
               (fq) =>
-                fq.type === QuestionType.FlashCard &&
-                fq.assessmentID === q.assessmentID
+                fq.Type === QuestionType.FlashCard &&
+                fq.AssessmentID === q.AssessmentID
             )
-            .map((fq) => fq.question),
+            .map((fq) => fq.Question),
         };
-      } else if (q.type === QuestionType.Highlighting) {
-        return {
-          ...q,
-          content: referenceText,
-        };
-      } else {
-        return q;
-      }
     });
 
-    setFormattedQuestions(formatted);
+    
+
+    const newQuestions: Question[] = questions.filter( q => q.Type !== QuestionType.FlashCard);
+
+    setFormattedQuestions([...newQuestions, ...formatted]);
   }, [questions, referenceText]);
 
   const handleAnswerChange = (
@@ -109,18 +147,19 @@ const AssessmentPage: React.FC = () => {
     setAnswers((prevAnswers) => ({ ...prevAnswers, [questionId]: answer }));
   };
 
-  const handleNavigation = (questionNumber: number) => {
+  const handleNavigation = (questionNumber: number) => {;
     setCurrentQuestion(questionNumber);
   };
 
   const handlePrevious = () => {
+    console.log("Current Question:", currentQuestion);
     if (currentQuestion > 1) {
       setCurrentQuestion(currentQuestion - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentQuestion < questions.length) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -128,7 +167,6 @@ const AssessmentPage: React.FC = () => {
   const handleSubmitAnswers = async () => {
     try {
       const answersToSend: StudentAnswer[] = [];
-  
       for (const [questionId, answer] of Object.entries(answers)) {
         if (typeof answer === "string") {
           // Short Answer and Highlighting
@@ -137,7 +175,7 @@ const AssessmentPage: React.FC = () => {
             questionID: questionId,
             answer: answer,
             studentID: "1",
-            assessmentID: "1"
+            AssessmentID: "1"
           });
         } else {
           // Flashcard 
@@ -147,9 +185,9 @@ const AssessmentPage: React.FC = () => {
           );
   
           if (combinedFlashcardQuestion) {
-            const assessmentId = combinedFlashcardQuestion.assessmentID;
+            const AssessmentID = combinedFlashcardQuestion.AssessmentID;
             const originalFlashcardQuestions = questions.filter(
-              (q) => q.type === QuestionType.FlashCard && q.assessmentID === assessmentId
+              (q) => q.type === QuestionType.FlashCard && q.AssessmentID === AssessmentID
             );
   
             // Iterate through the original True/False questions 
@@ -165,7 +203,7 @@ const AssessmentPage: React.FC = () => {
                 questionID: originalQuestion.id,
                 answer: answerValue,
                 studentID: "1",
-                assessmentID: "1"
+                AssessmentID: "1"
               });
             });
           }
@@ -219,27 +257,28 @@ const AssessmentPage: React.FC = () => {
   return (
     <div className="flex flex-col">
       <header className="p-4 flex justify-between items-center">
-        <h1 className="text-xl">Assessment {id}</h1>
+        <h1 className="text-xl">{assessment?.Title} </h1>
         <Timer timeLeft={timeLeft} />
       </header>
 
-      <div className="flex flex-col items-center p-4 mb-9">
+      <div className="grid place-items-center p-4 mb-9" style={{minHeight: "600px"}}>
         <div className="max-w-6xl w-full bg-white rounded-lg shadow-lg p-6">
           {formattedQuestions.length > 0 ? (
             currentQuestionData && (
               (() => {
-                switch (currentQuestionData.type) {
+                console.log("Current Question Data:", currentQuestionData);
+                switch (currentQuestionData.Type) {
                   case QuestionType.MultipleChoice:
                     return (
                       <MultipleChoiceQuestion
                         questionNumber={currentQuestion}
-                        questionText={currentQuestionData.question}
-                        options={currentQuestionData.options || []}
+                        questionText={currentQuestionData.Question}
+                        options={currentQuestionData.Options || []}
                         selectedAnswer={
-                          (answers[currentQuestionData.id] as string) || null
+                          (answers[currentQuestionData.QuestionID] as string) || null
                         }
                         onAnswerSelect={(answer) =>
-                          handleAnswerChange(currentQuestionData.id, answer)
+                          handleAnswerChange(currentQuestionData.QuestionID, answer)
                         }
                       />
                     );
@@ -247,10 +286,10 @@ const AssessmentPage: React.FC = () => {
                     return (
                       <ShortAnswerQuestion
                         questionNumber={currentQuestion}
-                        questionText={currentQuestionData.question}
-                        answer={(answers[currentQuestionData.id] as string) || ""}
+                        questionText={currentQuestionData.Question}
+                        answer={(answers[currentQuestionData.QuestionID] as string) || ""}
                         onAnswerChange={(answer) =>
-                          handleAnswerChange(currentQuestionData.id, answer)
+                          handleAnswerChange(currentQuestionData.QuestionID, answer)
                         }
                       />
                     );
@@ -259,10 +298,10 @@ const AssessmentPage: React.FC = () => {
                       <FlashcardQuestion
                         question={currentQuestionData}
                         onAnswerChange={(answer) =>
-                          handleAnswerChange(currentQuestionData.id, answer)
+                          handleAnswerChange(currentQuestionData.QuestionID, answer)
                         }
                         savedAnswer={
-                          answers[currentQuestionData.id] as
+                          answers[currentQuestionData.QuestionID] as
                           | FlashcardAnswer
                           | undefined
                         }
@@ -272,11 +311,11 @@ const AssessmentPage: React.FC = () => {
                     return (
                       <TextHighlight
                         questionNumber={currentQuestion}
-                        questionText={currentQuestionData.question}
-                        content={currentQuestionData.content || ""}
-                        highlightedText={(answers[currentQuestionData.id] as string) || ""}
+                        questionText={currentQuestionData.Question}
+                        content={referenceText}
+                        highlightedText={(answers[currentQuestionData.QuestionID] as string) || ""}
                         onHighlight={(highlightedText) =>
-                          handleAnswerChange(currentQuestionData.id, highlightedText)
+                          handleAnswerChange(currentQuestionData.QuestionID, highlightedText)
                         }
                       />
                     );
@@ -301,7 +340,7 @@ const AssessmentPage: React.FC = () => {
       <div className="inline-block flex justify-center"> {/* Apply inline-block to the container */}
         <button
           onClick={handleSubmitAnswers}
-          disabled={Object.keys(answers).length < formattedQuestions.length}
+          // disabled={Object.keys(answers).length < formattedQuestions.length}
           className="bg-primary px-4 py-2 rounded-md text-white font-semibold"
         >
           Submit Answers
@@ -316,4 +355,4 @@ const AssessmentPage: React.FC = () => {
     </div>
   );
 };
-export default AssessmentPage;
+export default StudentView;
