@@ -12,15 +12,15 @@
     "content": "Create 10 multiple-choice questions from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", \"option3\", \"option4\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Option A\", \"option2\": \"Option B\", \"option3\": \"Option C\", \"option4\": \"Option D\", \"answer\": \"Option B\"}, {\"question\": \"Question 2\", \"option1\": \"Option E\", \"option2\": \"Option F\", \"option3\": \"Option G\", \"option4\": \"Option H\", \"answer\": \"Option E\"},...]."
   },
   "prompt4": {
-    "name": "10 True or False",
+    "name": "10 True/False",
     "content": "Create 10 True/False questions with two options called \"True\" or \"False\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"True\", \"option2\": \"False\", \"answer\": \"True\"}, {\"question\": \"Question 2\", \"option1\": \"True\", \"option2\": \"False\", \"answer\": \"False\"},...]."
   },
   "prompt5": {
-    "name": "10 Agree or Disagree",
+    "name": "10 Agree/Disagree",
     "content": "Create 10 Agree/Disagree questions with two options called \"Agree\" or \"Disagree\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Agree\", \"option2\": \"Disagree\", \"answer\": \"Agree\"}, {\"question\": \"Question 2\", \"option1\": \"Agree\", \"option2\": \"Disagree\", \"answer\": \"Disagree\"},...]."
   },
   "prompt6": {
-    "name": "10 Correct or Incorrect",
+    "name": "10 Correct/Incorrect",
     "content": "Create 10 Correct/Incorrect questions with two options called \"Correct\" or \"Incorrect\" from this reading material. Output the whole response as PLAIN TEXT but with a JSON-like format, starting with \"[\" and ending with \"]\", with the keys \"question\", \"option1\", \"option2\", and \"answer\", like this: [{\"question\": \"Question 1\", \"option1\": \"Correct\", \"option2\": \"Incorrect\", \"answer\": \"Correct\"}, {\"question\": \"Question 2\", \"option1\": \"Correct\", \"option2\": \"Incorrect\", \"answer\": \"Incorrect\"},...]. Denote single quote with single a backward slash before it; and double quote with three backward slashes before it."
   },
   "prompt7": {
