@@ -249,28 +249,36 @@ async def get_reading_material():
         return {"error": "Failed to load reference text"}, 500
 
 class StudentAnswer(BaseModel):
-    ansID: str
-    questionID: str
-    answer: str
-    studentID: str
-    assessmentID: str
+    AnswerID: str
+    QuestionID: str
+    Answer: str
+    StudentID: str
+    AssessmentID:str
 
 @app.post("/submit_answers")
-async def submit_answers(request: Request):
+async def submit_answers(answers_data: List[StudentAnswer]):
     try:
-        answers_data: List[StudentAnswer] = await request.json()
         print("Answers Received:", answers_data)
 
-        file_path = os.path.join(os.path.dirname(__file__), "stuAns.json")
-        print("Saving answers to:", file_path)
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(answers_data, f, indent=3)
-
-
+        # file_path = os.path.join(os.path.dirname(__file__), "stuAns.json")
+        # print("Saving answers to:", file_path)
+        # with open(file_path, "w", encoding="utf-8") as f:
+        #     json.dump(answers_data, f, indent=3)
+        for answer in answers_data:
+            # Check if the answer already exists
+            existing_answer = supabase.table("StudentAnswer").select("*").eq("AnswerID", answer.AnswerID).execute()
+            if existing_answer.data:
+                print(f"Answer '{answer.AnswerID}' already exists, skipping...")
+                continue
+            else:
+                # use endpoint to save answers to supabase
+                create_student_answer(answer)
+                print(f"Answer '{answer.AnswerID}' saved successfully!")
+                continue
         return {"message": "Answers received successfully!"}
 
     except Exception as e:
-        print("Backend - General Error:", e)
+        print(f"Error saving answers: {e}")
         return {"error": f"An error occurred: {str(e)}"}
 
 
@@ -718,21 +726,16 @@ def create_class():
         raise HTTPException(status_code=500, detail=str(e))
 
 #Create StudentAnswer
-class StudentAnswerSchema(BaseModel):
-    question_id: str
-    student_id: str
-    answer: str
 @app.post("/student_answer/", status_code=status.HTTP_201_CREATED)
-def create_student_answer(student_answer: StudentAnswerSchema):
-    # Generate UUID for AnswerID
-    answer_id = str(uuid.uuid4())
+def create_student_answer(student_answer: StudentAnswer):
 
     #Prepare data
     new_student_answer = {
-        "AnswerID": answer_id,
-        "QuestionID": student_answer.question_id,
-        "StudentID": student_answer.student_id,
-        "Answer": student_answer.answer
+        "AnswerID": student_answer.AnswerID,
+        "QuestionID": student_answer.QuestionID,
+        "StudentID": student_answer.StudentID,
+        "Answer": student_answer.Answer,
+        "AssessmentID": student_answer.AssessmentID
     }
 
     try:

@@ -11,7 +11,6 @@ import { Question, QuestionType } from "@/types/question";
 import { StudentAnswer } from "@/types/studentAns";
 import { v4 as uuid } from "uuid";
 import { Assessment } from "@/types/assessment";
-import { FaHackerNewsSquare } from "react-icons/fa";
 
 interface FlashcardAnswer {
   true: string[];
@@ -86,7 +85,6 @@ const StudentView: React.FC = () => {
 
       setQuestions(data?.data as Question[]);
       setCurrentQuestion(1)
-      setQuestionAnswers([]);
     } catch (error) {
       setError("Error fetching questions");
     }
@@ -152,7 +150,6 @@ const StudentView: React.FC = () => {
   };
 
   const handlePrevious = () => {
-    console.log("Current Question:", currentQuestion);
     if (currentQuestion > 1) {
       setCurrentQuestion(currentQuestion - 1);
     }
@@ -171,39 +168,39 @@ const StudentView: React.FC = () => {
         if (typeof answer === "string") {
           // Short Answer and Highlighting
           answersToSend.push({
-            ansID: uuid(),
-            questionID: questionId,
-            answer: answer,
-            studentID: "1",
-            AssessmentID: "1"
+            AnswerID: uuid(),
+            QuestionID: questionId,
+            Answer: answer,
+            StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
+            AssessmentID: id
           });
         } else {
           // Flashcard 
           // Find the combined Flashcard question in formattedQuestions
           const combinedFlashcardQuestion = formattedQuestions.find(
-            (q) => q.type === QuestionType.FlashCard && q.id === questionId
+            (q) => q.Type === QuestionType.FlashCard && q.QuestionID === questionId
           );
   
           if (combinedFlashcardQuestion) {
             const AssessmentID = combinedFlashcardQuestion.AssessmentID;
             const originalFlashcardQuestions = questions.filter(
-              (q) => q.type === QuestionType.FlashCard && q.AssessmentID === AssessmentID
+              (q) => q.Type === QuestionType.FlashCard && q.AssessmentID === AssessmentID
             );
   
             // Iterate through the original True/False questions 
             originalFlashcardQuestions.forEach((originalQuestion) => {
               // Determine if the answer is true or false
               let answerValue = "False"; 
-              if (answer.true.includes(originalQuestion.question)) {
+              if (answer.true.includes(originalQuestion.Question)) {
                 answerValue = "True";
               }
 
               answersToSend.push({
-                ansID: uuid(),
-                questionID: originalQuestion.id,
-                answer: answerValue,
-                studentID: "1",
-                AssessmentID: "1"
+                AnswerID: uuid(),
+                QuestionID: originalQuestion.QuestionID,
+                Answer: answerValue,
+                StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
+                AssessmentID: id,
               });
             });
           }
@@ -234,7 +231,7 @@ const StudentView: React.FC = () => {
   const handleAnalyseAnswers = async () => {
     setError(null);
     try {
-      const res = await fetch("/api/analyse_answers", {
+      const res = await fetch(`/api/analyse_answers/${id}`, {
         method: "POST",
       });
 
