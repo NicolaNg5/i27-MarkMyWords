@@ -281,6 +281,14 @@ async def submit_answers(answers_data: List[StudentAnswer]):
         print(f"Error saving answers: {e}")
         return {"error": f"An error occurred: {str(e)}"}
 
+class AnalysisSchema(BaseModel):
+    StudentID: str
+    AssessmentID: str
+    feedback: str
+    strengths: str
+    weaknesses: str
+    literal_rating: int
+    inferential_rating: int
 
 @app.post("/analyse_answers")
 async def analyse_answers(assessment_id: str):
@@ -297,22 +305,24 @@ async def analyse_answers(assessment_id: str):
         print("Error getting questions:", e)
         return {"error": "Failed to get questions"}
     # get student answers
-    submitted_answers = []
-    for question in questions:
-        try:
-            result = get_studentanswer_questionid(question["QuestionID"])
-            answer = result.data[0]
-            new_answer = StudentAnswer(
-                AnswerID = answer["AnswerID"],
-                QuestionID = question["QuestionID"],
-                Answer = answer["Answer"],
-                StudentID = answer["StudentID"],
-                AssessmentID = answer["AssessmentID"]
-            )
-            submitted_answers.append(new_answer)
-        except Exception as e:
-            print("Error getting student answers:", e)
-            return {"error": "Failed to get student answers"}
+    submitted_answers: List[StudentAnswer] = []
+    try:
+        result = get_studentanswer_assessmentid(assessment_id)
+        answers = result.data
+    except Exception as e:
+        print("Error getting student answers:", e)
+        return {"error": "Failed to get student answers"}
+    for answer in answers:
+        new_answer = StudentAnswer(
+            AnswerID = answer["AnswerID"],
+            QuestionID = answer["QuestionID"],
+            Answer = answer["Answer"],
+            StudentID = answer["StudentID"],
+            AssessmentID = answer["AssessmentID"]
+        )
+        print("adding answer:", new_answer)
+        submitted_answers.append(new_answer)
+
     print("Submitted Answers:", submitted_answers)
 
     # with open("uploads/DoctorGoldsmith.txt", "r", encoding="utf-8") as f:
@@ -334,7 +344,7 @@ async def analyse_answers(assessment_id: str):
         student_answers[student_id][assessment_id].append(answer)
 
     print("Analysing student answers...")
-    analysis_results = []
+    analysis_results: List[AnalysisSchema] = []
     for student_id, assessments in student_answers.items():
         for assessment_id, answers in assessments.items():
             analysis_prompt = f"Reference Text: {reference_text}\n\n"
@@ -403,20 +413,24 @@ async def analyse_answers(assessment_id: str):
                 except:
                     literal = ""
                     inferential = ""
+            
+            new_analysis = AnalysisSchema(
+                StudentID = student_id,
+                AssessmentID = assessment_id,
+                feedback = analysis_text,
+                strengths = strength_text,
+                weaknesses = weakness_text,
+                literal_rating = literal,
+                inferential_rating = inferential
+            )
 
-            analysis_results.append({
-                "studentID": student_id,
-                "assessmentID": assessment_id,
-                "feedback": analysis_text,
-                "strengths": strength_text,
-                "weaknesses": weakness_text,
-                "literal_rating:": literal,
-                "inferential_rating": inferential
-            })
+            analysis_results.append(new_analysis)
 
     print("Analysis Results:")
     for result in analysis_results:
+        create_analysis(result)
         print(result, "\n")
+
     return analysis_results
 
 #--------------------------------------------------------------------------------------#
@@ -540,6 +554,12 @@ def get_studentanswer_questionid(questionid:UUID):
     answer = supabase.table("StudentAnswer").select("*").eq("QuestionID",questionid).execute()
     return answer
 
+#Get answer based on assessmentid
+@app.get("/studentanswer/assessment/{assessmentid}")
+def get_studentanswer_assessmentid(assessmentid:UUID):
+    answer = supabase.table("StudentAnswer").select("*").eq("AssessmentID",assessmentid).execute()
+    return answer
+
 #Get answer based on question id
 @app.get("/answerquesid/{questionid}")
 def get_answer_questionid(questionid:UUID):
@@ -564,6 +584,51 @@ def get_result_studentid(id:UUID):
     result = supabase.table("AssessmentResults").select("*").eq("StudentID",id).execute()
     return result
 
+#Get analysis based on assessment id
+@app.get("/analysis/{id}")
+def get_analysis_assessmentid(id:UUID):
+    analysis = supabase.table("Analysis").select("*").eq("AssessmentID",id).execute()
+    return analysis
+
+#Create analysis
+@app.post("/analysis/", status_code=status.HTTP_201_CREATED)
+def create_analysis(analysis: AnalysisSchema):
+    # Generate UUID for analysis id
+    analysis_id = str(uuid.uuid4())
+
+    # Prepare data
+    new_analysis = {
+        "AnalysisID": analysis_id,
+        "StudentID": analysis.StudentID,
+        "AssessmentID": analysis.AssessmentID,
+        "feedback": analysis.feedback,
+        "strengths": analysis.strengths,
+        "weaknesses": analysis.weaknesses,
+        "literal_rating": analysis.literal_rating,
+        "inferential_rating": analysis.inferential_rating
+    }
+
+    # Insert new analysis into Supabase
+    try:
+        result = supabase.table("Analysis").insert(new_analysis).execute()
+
+        # Check insertion
+        if result.data:
+            return {"message": "Analysis created successfully", "analysis": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create analysis")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            if "studentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Student with ID {analysis.StudentID} does not exist")
+            elif "assessmentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Assessment with ID {analysis.AssessmentID} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    return "Analysis created successfully"
 #Create student
 class StudentSchema(BaseModel):
     name: str

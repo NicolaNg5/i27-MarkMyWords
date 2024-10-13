@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import SwitchButton from '@/components/SwitchButton';
 import DifficultyArea from '@/components/DifficultyArea';
 import ViewSelection from '@/components/ViewSelection';
@@ -14,6 +14,7 @@ import { format, set } from 'date-fns';
 import { Question } from '@/types/question';
 import { StudentAnswer } from '@/types/answer';
 import StudentAnswers from '@/components/StudentAnswers';
+import { Analysis } from '@/types/analysis';
 
 export interface QuestionAnswers {
   Question: Question;
@@ -29,6 +30,8 @@ const AssessmentResults: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [questionAnswers, setQuestionAnswers] = useState<QuestionAnswers[]>([]);
   const [answers, setAnswers] = useState<StudentAnswer[]>([]);
+  const [analysis, setAnalysis] = useState<Analysis[]>([]);
+  const [currentAnalysis, setCurrentAnalysis] = useState<Analysis>({} as Analysis);
   const [feedback, setFeedback] = useState<string>("");
   const [selectedView, setSelectedView] = useState<
     'Performance Trend' | 'Area of Difficulty' | 'Score Distribution' | 'Class Ranking'
@@ -47,13 +50,12 @@ const AssessmentResults: React.FC = () => {
     isStudentView ? setSelectedView('Area of Difficulty') : setSelectedView('Class Ranking');
   }, [isStudentView]);
 
-
   const fetchStudents = async () => {
     try {
       const res = await fetch(`/api/class_students/${assessment.Class}`);
       const data = await res.json();
       setStudents(data?.data as Student[]); //filled with array response
-      setSelectedStudent(data?.data[0].StudentID);
+      setSelectedStudent(data?.data[0].Studentid);
     } catch (error) {
       setError("Error fetching students");
     }
@@ -88,23 +90,41 @@ const AssessmentResults: React.FC = () => {
         Question: question,
         Answers: data?.data as StudentAnswer[]
       }
-      //need to add duplicate check
-        setQuestionAnswers((prev) => prev ? [...prev, QnA] : [QnA]);
+      setQuestionAnswers((prev) => {
+        // Check if the question is already in the list
+        const existingQA = prev.find(qa => qa.Question.QuestionID === question.QuestionID);
+        
+        if (existingQA) {
+          // If the question exists, update its answers
+          return prev.map(qa => 
+            qa.Question.QuestionID === question.QuestionID 
+              ? { ...qa, Answers: data?.data as StudentAnswer[] }
+              : qa
+          );
+        } else {
+          // If the question doesn't exist, add it to the list
+          return [...prev, {
+            Question: question,
+            Answers: data?.data as StudentAnswer[]
+          }];
+        }
+      });
     } catch (error) {
       setError("Error fetching student answers");
     }
   }
 
-  const fetchStudentFeedback = async () => {
+  const fetchAnalysis = async () => {
     try {
       //write handler
-      const res = await fetch(`/api/feedback/${selectedStudent}`);
+      const res = await fetch(`/api/getAssessmentAnalysis/${id}`);
       const data = await res.json();
-      setFeedback(data?.data[0].Feedback);
+      setAnalysis(data?.data as Analysis[]);
     } catch (error) {
-      setError("Error fetching feedback");
+      setError("Error fetching analysis");
     }
   }
+
 
   useEffect(() => {
     fetchAssessment();
@@ -113,17 +133,28 @@ const AssessmentResults: React.FC = () => {
   useEffect(() => {
     fetchStudents();
     fetchAssessmentQuestions();
+    fetchAnalysis();
   }, [assessment]);
 
   useEffect(() => {
-    questions?.forEach((question) => {
-      fetchStudentAnswers(question);
-    });
-  }, [questions]);
+    if (selectedStudent){
+      questions?.forEach((question) => {
+        fetchStudentAnswers(question);
+      });
+    }
+  }, [selectedStudent, questions]);
 
   useEffect(() => {
-    fetchStudentFeedback();
+    setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
+    setCurrentAnalysis(analysis?.find((a) => a.StudentID === selectedStudent) ?? {} as Analysis);
   },[selectedStudent]);
+
+  // method for changing selected student and setting the current analysis to the selected student
+  const handleStudentChange = (studentId: string) => {
+    setSelectedStudent(studentId);
+    setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
+  };
+
 
   // Sample for student list
   return (
@@ -145,7 +176,7 @@ const AssessmentResults: React.FC = () => {
           <>
             <select
               value={selectedStudent}
-              onChange={(e) => setSelectedStudent(e.target.value)}
+              onChange={(e) => handleStudentChange(e.target.value)}
               className="border border-gray-300 rounded px-3 py-2"
             >
               {students?.map((student) => (
@@ -157,18 +188,13 @@ const AssessmentResults: React.FC = () => {
           </>
         )}
       </div>
-
-      {/* View Selection Buttons */}
-      {/* <ViewSelection
-        isStudentView={isStudentView}
-        selectedView={selectedView}
-        setSelectedView={setSelectedView}
-      /> */}
-
-
       {isStudentView ? (
         <>
           <StudentAnswers  studentId={selectedStudent} questionAnswer={questionAnswers}/>
+          <p>Strengths: {currentAnalysis.strengths}</p>
+          <p>Weaknesses: {currentAnalysis.weaknesses}</p>
+          <p>Inferential Rating: {currentAnalysis.inferential_rating}</p>
+          <p>Literal Rating: {currentAnalysis.literal_rating}</p>
           <div className="my-5 gap-2">
             <h3>Student Feedback</h3>
             <div>
@@ -176,6 +202,7 @@ const AssessmentResults: React.FC = () => {
                 className="w-full h-32 border border-gray-300 rounded p-2 mt-2" 
                 placeholder="Enter feedback here"
                 defaultValue={feedback}
+                value={feedback}
               />
             </div>
           </div>

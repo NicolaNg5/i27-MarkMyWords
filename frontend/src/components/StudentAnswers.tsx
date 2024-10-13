@@ -18,7 +18,6 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
     const [questions, setQuestions] = useState<Question[]>(questionAnswer.map((qa) => qa.Question));
 
     useEffect(() => {
-        console.log(questionAnswer);
         setQuestions(questionAnswer.map((qa) => qa.Question));
     }, [questionAnswer]);
 
@@ -27,7 +26,7 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
         <>
           <div className="flex overflow-x-auto" style={{maxWidth: "90vw"}}>
                 {questions?.map((question) => {
-                    const answer = questionAnswer.find((qa) => qa.Question.QuestionID === question.QuestionID)?.Answers.find((a) => a.StudentID === studentId)?.Answer;
+                    const answer = questionAnswer?.find((qa) => qa.Question.QuestionID === question.QuestionID)?.Answers.find((a) => a.StudentID === studentId)?.Answer;
                     const typeColor = 
                             question.Type === QuestionType.MultipleChoice ? "bg-blue-400" : 
                             question.Type === QuestionType.FlashCard ? "bg-green-400" : 
