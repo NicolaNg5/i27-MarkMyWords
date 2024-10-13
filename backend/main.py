@@ -283,35 +283,67 @@ async def submit_answers(answers_data: List[StudentAnswer]):
 
 
 @app.post("/analyse_answers")
-async def analyse_answers():
-    with open("uploads/DoctorGoldsmith.txt", "r", encoding="utf-8") as f:
-        reference_text = f.read()
-    with open("demoQuestions.json", "r", encoding="utf-8") as f:
-        demo_questions = json.load(f)
-    with open("stuAns.json", "r", encoding="utf-8") as f:
-            submitted_answers = json.load(f)
+async def analyse_answers(assessment_id: str):
+    # get assessment reading material
+    reading_material = get_assessment_file_content(assessment_id)
+    reference_text = reading_material
+    print("Reading Material:", reference_text)
+    # get assessment questions
+    try:
+        result = get_assessment_questions(assessment_id)
+        questions = result.data
+        print("Questions:", questions)
+    except Exception as e:
+        print("Error getting questions:", e)
+        return {"error": "Failed to get questions"}
+    # get student answers
+    submitted_answers = []
+    for question in questions:
+        try:
+            result = get_studentanswer_questionid(question["QuestionID"])
+            answer = result.data[0]
+            new_answer = StudentAnswer(
+                AnswerID = answer["AnswerID"],
+                QuestionID = question["QuestionID"],
+                Answer = answer["Answer"],
+                StudentID = answer["StudentID"],
+                AssessmentID = answer["AssessmentID"]
+            )
+            submitted_answers.append(new_answer)
+        except Exception as e:
+            print("Error getting student answers:", e)
+            return {"error": "Failed to get student answers"}
+    print("Submitted Answers:", submitted_answers)
+
+    # with open("uploads/DoctorGoldsmith.txt", "r", encoding="utf-8") as f:
+    #     reference_text = f.read()
+    # with open("demoQuestions.json", "r", encoding="utf-8") as f:
+    #     demo_questions = json.load(f)
+    # with open("stuAns.json", "r", encoding="utf-8") as f:
+    #         submitted_answers = json.load(f)
 
     #Group answers by student and assessment
     student_answers = {}
     for answer in submitted_answers:
-        student_id = answer["studentID"]
-        assessment_id = answer["assessmentID"]
+        student_id = answer.StudentID
+        assessment_id = answer.AssessmentID
         if student_id not in student_answers:
             student_answers[student_id] = {}
         if assessment_id not in student_answers[student_id]:
             student_answers[student_id][assessment_id] = []
         student_answers[student_id][assessment_id].append(answer)
 
+    print("Analysing student answers...")
     analysis_results = []
     for student_id, assessments in student_answers.items():
         for assessment_id, answers in assessments.items():
             analysis_prompt = f"Reference Text: {reference_text}\n\n"
             for answer in answers:
-                question = next((q for q in demo_questions if q["id"] == answer["questionID"]), None)
+                question = next((q for q in questions if q["QuestionID"] == answer.QuestionID), None)
                 if question:
-                    analysis_prompt += "Question: " + question['question'] + "\n"
-                    analysis_prompt += "Student Answer: " + answer['answer'] + "\n"
-                    analysis_prompt += "Suggested Answer: " + question['answer'] + "\n"
+                    analysis_prompt += "Question: " + question['Question'] + "\n"
+                    analysis_prompt += "Student Answer: " + answer.Answer + "\n"
+                    analysis_prompt += "Suggested Answer: " + question['Answer'] + "\n"
             analysis_prompt += "Please provide the analysis as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"analysis\": \"<your analysis of the student's reading comprehension based on their answers>\"}"
 
             analysis_text = ""
@@ -462,7 +494,7 @@ def get_question(id:UUID):
 
 #Get specific questions based on assessment id
 @app.get("/question/assessment/{id}")
-def get_question(id:UUID):
+def get_assessment_questions(id:UUID):
     question = supabase.table("Question").select("*").eq("AssessmentID",id).execute()
     return question
 
@@ -504,14 +536,14 @@ def get_answer_answerid(answerid:UUID):
 
 #Get answer based on student id and question id
 @app.get("/studentanswer/{questionid}")
-def get_answer_studentid(questionid:UUID):
+def get_studentanswer_questionid(questionid:UUID):
     answer = supabase.table("StudentAnswer").select("*").eq("QuestionID",questionid).execute()
     return answer
 
 #Get answer based on question id
 @app.get("/answerquesid/{questionid}")
 def get_answer_questionid(questionid:UUID):
-    answer = supabase.table("Question").select("Answer").eq("QuestionID",questionid).execute()
+    answer = supabase.table("Question").select("*").eq("QuestionID",questionid).execute()
     return answer
 
 #Get all results

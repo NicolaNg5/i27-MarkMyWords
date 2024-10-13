@@ -11,6 +11,8 @@ import { Question, QuestionType } from "@/types/question";
 import { StudentAnswer } from "@/types/studentAns";
 import { v4 as uuid } from "uuid";
 import { Assessment } from "@/types/assessment";
+import Loading from "@/components/Loading";
+import Modal from "@/components/modals/Modal";
 
 interface FlashcardAnswer {
   true: string[];
@@ -18,7 +20,6 @@ interface FlashcardAnswer {
 }
 const StudentView: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [questionAnswers, setQuestionAnswers] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState<
     Record<string, string | FlashcardAnswer>
@@ -29,35 +30,9 @@ const StudentView: React.FC = () => {
   const [formattedQuestions, setFormattedQuestions] = useState<Question[]>([]);
   const [answersSubmitted, setAnswersSubmitted] = useState(false);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const [loading, setLoading] = useState(false);
   const id = "c5f2d012-b6fc-4088-beb7-a73d7f5b3c7b"
 
-  const fetchAssessmentData = async () => {
-    try {
-      //Fetch questions for quiz
-      const res = await fetch(`/api/question/assessment/${id}`);
-      console.log(res)
-      const questionsData = await res.json();
-
-      if (questionsData.error) {
-        throw new Error(questionsData.error);
-      }
-
-      setQuestions(questionsData.questions);
-
-      // Fetch reading material
-      const textRes = await fetch("/api/reading_material");
-      const textData = await textRes.json();
-
-      if (textData.error) {
-        throw new Error(textData.error);
-      }
-
-      setReferenceText(textData.text);
-    } catch (error) {
-      console.error("Error fetching assessment data:", error);
-      setError("Failed to load assessment data.");
-    }
-  };
   const fetchAssessment= async () => {
     try {
       const res = await fetch(`/api/assessment/${id}`);
@@ -162,69 +137,74 @@ const StudentView: React.FC = () => {
   };
 
   const handleSubmitAnswers = async () => {
-    try {
-      const answersToSend: StudentAnswer[] = [];
-      for (const [questionId, answer] of Object.entries(answers)) {
-        if (typeof answer === "string") {
-          // Short Answer and Highlighting
-          answersToSend.push({
-            AnswerID: uuid(),
-            QuestionID: questionId,
-            Answer: answer,
-            StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
-            AssessmentID: id
-          });
-        } else {
-          // Flashcard 
-          // Find the combined Flashcard question in formattedQuestions
-          const combinedFlashcardQuestion = formattedQuestions.find(
-            (q) => q.Type === QuestionType.FlashCard && q.QuestionID === questionId
-          );
-  
-          if (combinedFlashcardQuestion) {
-            const AssessmentID = combinedFlashcardQuestion.AssessmentID;
-            const originalFlashcardQuestions = questions.filter(
-              (q) => q.Type === QuestionType.FlashCard && q.AssessmentID === AssessmentID
-            );
-  
-            // Iterate through the original True/False questions 
-            originalFlashcardQuestions.forEach((originalQuestion) => {
-              // Determine if the answer is true or false
-              let answerValue = "False"; 
-              if (answer.true.includes(originalQuestion.Question)) {
-                answerValue = "True";
-              }
-
-              answersToSend.push({
-                AnswerID: uuid(),
-                QuestionID: originalQuestion.QuestionID,
-                Answer: answerValue,
-                StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
-                AssessmentID: id,
-              });
+    if (Object.keys(answers).length < formattedQuestions.length) {
+      alert("Please answer all questions before submitting.");
+      return;
+    } else {
+      try {
+        const answersToSend: StudentAnswer[] = [];
+        for (const [questionId, answer] of Object.entries(answers)) {
+          if (typeof answer === "string") {
+            // Short Answer and Highlighting
+            answersToSend.push({
+              AnswerID: uuid(),
+              QuestionID: questionId,
+              Answer: answer,
+              StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
+              AssessmentID: id
             });
+          } else {
+            // Flashcard 
+            // Find the combined Flashcard question in formattedQuestions
+            const combinedFlashcardQuestion = formattedQuestions.find(
+              (q) => q.Type === QuestionType.FlashCard && q.QuestionID === questionId
+            );
+    
+            if (combinedFlashcardQuestion) {
+              const AssessmentID = combinedFlashcardQuestion.AssessmentID;
+              const originalFlashcardQuestions = questions.filter(
+                (q) => q.Type === QuestionType.FlashCard && q.AssessmentID === AssessmentID
+              );
+    
+              // Iterate through the original True/False questions 
+              originalFlashcardQuestions.forEach((originalQuestion) => {
+                // Determine if the answer is true or false
+                let answerValue = "False"; 
+                if (answer.true.includes(originalQuestion.Question)) {
+                  answerValue = "True";
+                }
+
+                answersToSend.push({
+                  AnswerID: uuid(),
+                  QuestionID: originalQuestion.QuestionID,
+                  Answer: answerValue,
+                  StudentID: "4e071e5a-a0cb-410d-b7a9-6a0e3409915c",
+                  AssessmentID: id,
+                });
+              });
+            }
           }
         }
+    
+        console.log("Answers to send:", answersToSend);
+        const answersText = JSON.stringify(answersToSend);
+    
+        const res = await fetch("/api/submit_answers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }, 
+          body: answersText, 
+        });
+    
+        if (res.ok) {
+          alert("Answers submitted successfully!");
+          setAnswersSubmitted(true);
+        } else {
+          throw new Error(`Error submitting answers: ${res.status} ${res.statusText}`);
+        }
+      } catch (error) {
+        console.error("Error submitting answers:", error);
+        setError("Error submitting answers. Please try again.");
       }
-  
-      console.log("Answers to send:", answersToSend);
-      const answersText = JSON.stringify(answersToSend);
-  
-      const res = await fetch("/api/submit_answers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }, 
-        body: answersText, 
-      });
-  
-      if (res.ok) {
-        alert("Answers submitted successfully!");
-        setAnswersSubmitted(true);
-      } else {
-        throw new Error(`Error submitting answers: ${res.status} ${res.statusText}`);
-      }
-    } catch (error) {
-      console.error("Error submitting answers:", error);
-      setError("Error submitting answers. Please try again.");
     }
   };
 
@@ -263,7 +243,6 @@ const StudentView: React.FC = () => {
           {formattedQuestions.length > 0 ? (
             currentQuestionData && (
               (() => {
-                console.log("Current Question Data:", currentQuestionData);
                 switch (currentQuestionData.Type) {
                   case QuestionType.MultipleChoice:
                     return (
@@ -342,7 +321,11 @@ const StudentView: React.FC = () => {
         >
           Submit Answers
         </button>
-        
+        {loading && (
+          <Modal title="Saving Questions" isOpen={loading} onClose={()=> {}} disableClose>
+            <Loading/>
+          </Modal>
+        )}
         {answersSubmitted && (
           <button onClick={handleAnalyseAnswers} className="bg-yellow-500 ml-2 text-white font-bold py-2 px-4 rounded">
             Get Feedback
