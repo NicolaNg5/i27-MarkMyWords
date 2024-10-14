@@ -5,6 +5,9 @@ import { useRouter } from "next/router";
 import React, { use, useEffect, useState } from "react";
 import Loading from "../Loading";
 import Error from "next/error";
+import mammoth from "mammoth";
+import * as pdfjsLib from "pdfjs-dist/build/pdf";
+import "pdfjs-dist/build/pdf.worker.entry";
 
 const CreateAssessmentForm: React.FC = () => {
   const [title, setTitle] = useState("");
@@ -26,13 +29,57 @@ const CreateAssessmentForm: React.FC = () => {
     }
   };
 
+  // useEffect(() => {
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       setFileContent(e.target?.result as string);
+  //     };
+  //     reader.readAsText(file);
+  //   }
+  // }, [file]);
+
   useEffect(() => {
     if (file) {
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setFileContent(e.target?.result as string);
-      };
-      reader.readAsText(file);
+
+      if (fileExtension === "txt") {
+        reader.onload = (e) => {
+          setFileContent(e.target?.result as string);
+        };
+        reader.readAsText(file);
+      } else if (fileExtension === "docx") {
+        reader.onload = async (e) => {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          const { value } = await mammoth.extractRawText({ arrayBuffer });
+          setFileContent(value);
+        };
+        reader.readAsArrayBuffer(file);
+      } else if (fileExtension === "pdf") {
+        reader.onload = async (e) => {
+          const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
+          const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+
+          let text = "";
+          for (let i = 0; i < pdf.numPages; i++) {
+            const page = await pdf.getPage(i + 1);
+            const textContent = await page.getTextContent();
+
+            const pageText = textContent.items
+              .map((item: { str: string }) => item.str)
+              .join(" ");
+            text += pageText + "\n";
+          }
+          setFileContent(text);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        setError(
+          "Unsupported file type. Please upload a .txt, .docx, or .pdf file."
+        );
+      }
     }
   }, [file]);
 
