@@ -150,7 +150,7 @@ const StudentView: React.FC = () => {
               AnswerID: uuid(),
               QuestionID: questionId,
               Answer: answer,
-              StudentID: "f94f1e58-3cbf-413e-af4d-efcf88bb5ede",
+              StudentID: "e9831946-cefe-4162-b242-84e9d6b82eca",
               AssessmentID: id
             });
           } else {
@@ -178,7 +178,7 @@ const StudentView: React.FC = () => {
                   AnswerID: uuid(),
                   QuestionID: originalQuestion.QuestionID,
                   Answer: answerValue,
-                  StudentID: "f94f1e58-3cbf-413e-af4d-efcf88bb5ede",
+                  StudentID: "e9831946-cefe-4162-b242-84e9d6b82eca",
                   AssessmentID: id,
                 });
               });
@@ -186,7 +186,7 @@ const StudentView: React.FC = () => {
           }
         }
     
-        console.log("Answers to send:", answersToSend);
+        // console.log("Answers to send:", answersToSend);
         const answersText = JSON.stringify(answersToSend);
     
         const res = await fetch("/api/submit_answers", {
@@ -327,7 +327,7 @@ const StudentView: React.FC = () => {
           </Modal>
         )}
         {answersSubmitted && (
-          <button onClick={handleAnalyseAnswers} className="bg-yellow-500 ml-2 text-white font-bold py-2 px-4 rounded">
+          <button onClick={handleAnalyseAnswers} className="bg-yellow-500 ml-2 text-white font-bold py-2 px-4 rounded" disabled>
             Get Feedback
           </button>
         )}

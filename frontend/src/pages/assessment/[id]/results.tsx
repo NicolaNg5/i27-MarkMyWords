@@ -15,6 +15,10 @@ import { Question } from '@/types/question';
 import { StudentAnswer } from '@/types/answer';
 import StudentAnswers from '@/components/StudentAnswers';
 import { Analysis } from '@/types/analysis';
+import Loading from '@/components/Loading';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import AnalysisBox from '@/components/AnalysisBox';
+import RatingBox from '@/components/RatingBox';
 
 export interface QuestionAnswers {
   Question: Question;
@@ -24,7 +28,7 @@ export interface QuestionAnswers {
 const AssessmentResults: React.FC = () => {
   const [isStudentView, setIsStudentView] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
-  const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
+  const [assessment, setAssessment] = useState<undefined | Assessment>(undefined);
   const [students, setStudents] = useState<Student[]>([])
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -33,6 +37,7 @@ const AssessmentResults: React.FC = () => {
   const [analysis, setAnalysis] = useState<Analysis[]>([]);
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis>({} as Analysis);
   const [feedback, setFeedback] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedView, setSelectedView] = useState<
     'Performance Trend' | 'Area of Difficulty' | 'Score Distribution' | 'Class Ranking'
   >('Area of Difficulty');
@@ -52,7 +57,7 @@ const AssessmentResults: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`/api/class_students/${assessment.Class}`);
+      const res = await fetch(`/api/class_students/${assessment?.Class}`);
       const data = await res.json();
       setStudents(data?.data as Student[]); //filled with array response
       setSelectedStudent(data?.data[0].Studentid);
@@ -86,10 +91,6 @@ const AssessmentResults: React.FC = () => {
     try {
       const res = await fetch(`/api/studentanswer/${question.QuestionID}`);
       const data = await res.json();
-      const QnA: QuestionAnswers = {
-        Question: question,
-        Answers: data?.data as StudentAnswer[]
-      }
       setQuestionAnswers((prev) => {
         // Check if the question is already in the list
         const existingQA = prev.find(qa => qa.Question.QuestionID === question.QuestionID);
@@ -114,47 +115,90 @@ const AssessmentResults: React.FC = () => {
     }
   }
 
-  const fetchAnalysis = async () => {
+  const generateAnalysis = async () => {
     try {
-      //write handler
-      const res = await fetch(`/api/getAssessmentAnalysis/${id}`);
+      const res = await fetch(`/api/analyse_answers/${id}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const data = await res.json();
-      setAnalysis(data?.data as Analysis[]);
+      console.log(data);
+      setAnalysis(data as Analysis[]);
     } catch (error) {
-      setError("Error fetching analysis");
+      setError("Error generating analysis");
     }
   }
 
+  const fetchAnalysis = async () => {
+    try {
+      const res = await fetch(`/api/getAssessmentAnalysis/${id}`);
+      const data = await res.json();
+      if (data?.data.length === 0){
+        await generateAnalysis();
+      } else {
+        setAnalysis(data?.data as Analysis[]);
+      }
+    } catch (error) {
+      setError("Error fetching analysis:" + error);
+    }
+  }
 
   useEffect(() => {
-    fetchAssessment();
+    const fetchData = async () => {
+      setLoading(true);
+      await fetchAssessment();
+      setLoading(false);
+    }
+    if (id) fetchData();
   }, [id]);
 
   useEffect(() => {
-    fetchStudents();
-    fetchAssessmentQuestions();
-    fetchAnalysis();
+    const getAssessmentAnalysis = async () => {
+      setLoading(true);
+      await fetchAnalysis();
+      setLoading(false);
+    }
+    if (assessment && analysis.length === 0) getAssessmentAnalysis();
   }, [assessment]);
+    
 
   useEffect(() => {
-    if (selectedStudent){
-      questions?.forEach((question) => {
-        fetchStudentAnswers(question);
+    const fetchData = async () => {
+      await fetchStudents();
+      await fetchAssessmentQuestions();
+    }
+    if (analysis.length != 0) fetchData();
+  }, [analysis]);
+
+  useEffect(() => {
+    if (selectedStudent && questions) {
+      questions?.forEach(async (question) => {
+        await fetchStudentAnswers(question);
       });
     }
-  }, [selectedStudent, questions]);
+  }, [questions]);
 
   useEffect(() => {
-    setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
-    setCurrentAnalysis(analysis?.find((a) => a.StudentID === selectedStudent) ?? {} as Analysis);
-  },[selectedStudent]);
+    if (analysis.length != 0) {
+      setCurrentAnalysis(analysis?.find((a) => a.StudentID === selectedStudent) ?? {} as Analysis);
+      setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
+    }
+  }, [selectedStudent]);
 
   // method for changing selected student and setting the current analysis to the selected student
   const handleStudentChange = (studentId: string) => {
     setSelectedStudent(studentId);
-    setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
+    setCurrentAnalysis(analysis?.find((a) => a.StudentID === studentId) ?? {} as Analysis);
+    setFeedback(analysis?.find((a) => a.StudentID === studentId)?.feedback ?? "no feedback given");
   };
 
+  const getRatingColor = (rating: number) => {
+    if (rating >= 8) return 'bg-green-400';
+    if (rating >= 6) return 'bg-yellow-300';
+    return 'bg-red-400';
+  };
 
   // Sample for student list
   return (
@@ -162,7 +206,7 @@ const AssessmentResults: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
         <h1 className="text-xl font-bold">Assessment Result</h1>
-        <h2>{assessment.Title}</h2>
+        <h2>{assessment?.Title}</h2>
         <h2>Due Date: {assessment?.dueDate ? format(assessment?.dueDate, 'dd-MM-yyyy').toString() : ""}</h2>
       </div>
 
@@ -171,7 +215,9 @@ const AssessmentResults: React.FC = () => {
         <SwitchButton
           isOn={isStudentView}
           toggleSwitch={() => setIsStudentView(!isStudentView)}
+          disabled={loading}
         />
+        
         {isStudentView && (
           <>
             <select
@@ -188,31 +234,73 @@ const AssessmentResults: React.FC = () => {
           </>
         )}
       </div>
-      {isStudentView ? (
+      { loading ? <Loading/> : (
         <>
+      {isStudentView ? (
+        <div className="space-y-2">
           <StudentAnswers  studentId={selectedStudent} questionAnswer={questionAnswers}/>
-          <p>Strengths: {currentAnalysis.strengths}</p>
-          <p>Weaknesses: {currentAnalysis.weaknesses}</p>
-          <p>Inferential Rating: {currentAnalysis.inferential_rating}</p>
-          <p>Literal Rating: {currentAnalysis.literal_rating}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnalysisBox title="Strengths" content={currentAnalysis.strengths} />
+            <AnalysisBox title="Weaknesses" content={currentAnalysis.weaknesses} />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RatingBox 
+              title="Inferential Rating" 
+              rating={currentAnalysis.inferential_rating} 
+              color={getRatingColor(currentAnalysis.inferential_rating)}
+            />
+            <RatingBox 
+              title="Literal Rating" 
+              rating={currentAnalysis.literal_rating} 
+              color={getRatingColor(currentAnalysis.literal_rating)}
+            />
+          </div>
+          
           <div className="my-5 gap-2">
             <h3>Student Feedback</h3>
             <div>
               <textarea 
                 className="w-full h-32 border border-gray-300 rounded p-2 mt-2" 
                 placeholder="Enter feedback here"
-                defaultValue={feedback}
                 value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
               />
             </div>
           </div>
-        </>
+        </div>
       ) : (
-        <>
-
-        </>
+          <div className="w-full h-[35em] flex flex-col bg-white rounded-lg shadow-md p-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Student Ratings: Inferential vs Literal</h2>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={
+                  analysis.map((a) => ({
+                    name: students.find((s) => s.Studentid === a.StudentID)?.name,
+                    inferential: a.inferential_rating,
+                    literal: a.literal_rating,
+                  }))
+                }
+                margin={{
+                  top: 20,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="inferential" stroke="#8884d8" activeDot={{ r: 8 }} name="Inferential" />
+                <Line type="monotone" dataKey="literal" stroke="#82ca9d" activeDot={{ r: 8 }} name="Literal" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         )}
-
+        </>
+      )}
       {/* Conditionally Render Based on Selected View
       {isStudentView ? (
         selectedView === 'Area of Difficulty' ? (
@@ -261,4 +349,3 @@ const AssessmentResults: React.FC = () => {
 };
 
 export default AssessmentResults;
-

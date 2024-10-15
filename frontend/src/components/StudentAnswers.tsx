@@ -25,6 +25,7 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
     return (
         <>
           <div className="flex overflow-x-auto" style={{maxWidth: "90vw"}}>
+            <ul className="flex flex-row list-none overflow-x-auto">
                 {questions?.map((question) => {
                     const answer = questionAnswer?.find((qa) => qa.Question.QuestionID === question.QuestionID)?.Answers.find((a) => a.StudentID === studentId)?.Answer;
                     const typeColor = 
@@ -33,12 +34,12 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
                             question.Type === QuestionType.Highlighting ? "bg-yellow-400" : 
                             "bg-red-400";
                     return(
-                        <div className="py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md" style={{minWidth:"500px"}}>
+                        <li key={question.QuestionID} className="py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md text-sm" style={{minWidth:"400px", maxHeight: "200px"}}>
                             <div className="row-span-1 flex items-inline">
-                                <div className={`${typeColor} text-center text-white text-md rounded px-2 py-2`} style={{minWidth: "3vw", maxHeight:"40px"}}>
+                                <div className={`${typeColor} text-center text-white text-sm rounded px-2 py-2`} style={{minWidth: "3vw", maxHeight:"40px"}}>
                                     {question.Type}
                                 </div>
-                                <div className={`flex items-center justify-between px-4 text-md`}>
+                                <div className={`flex items-center justify-between px-4 text-sm`}>
                                     <span >{question.Question}</span>
                                 </div>
                             </div>
@@ -54,9 +55,10 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
                             {question.Type === QuestionType.Highlighting && (
                                 <Highlighting question={question} studentAnswer={answer}/>
                             )}
-                        </div>
+                        </li>
             )
                 })}
+            </ul>
           </div>
         </>
     )
