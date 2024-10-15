@@ -1,8 +1,6 @@
 import { QuestionAnswers } from "@/pages/assessment/[id]/results";
-import { StudentAnswer } from "@/types/answer";
 import { Question, QuestionType } from "@/types/question";
-import { format } from "path";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MultipleChoice from "./questions/MultipleChoice";
 import FlashCard from "./questions/FlashCard";
 import ShortAnswer from "./questions/ShortAnswer";
@@ -24,7 +22,7 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
 
     return (
         <>
-          <div className="flex overflow-x-auto" style={{maxWidth: "90vw"}}>
+          <div className="flex mb-4 overflow-x-auto" style={{maxWidth: "90vw"}}>
             <ul className="flex flex-row list-none overflow-x-auto">
                 {questions?.map((question) => {
                     const answer = questionAnswer?.find((qa) => qa.Question.QuestionID === question.QuestionID)?.Answers.find((a) => a.StudentID === studentId)?.Answer;
@@ -34,12 +32,12 @@ const StudentAnswers: React.FC<StudentAnswersProps> = ({questionAnswer, studentI
                             question.Type === QuestionType.Highlighting ? "bg-yellow-400" : 
                             "bg-red-400";
                     return(
-                        <li key={question.QuestionID} className="py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md text-sm" style={{minWidth:"400px", maxHeight: "200px"}}>
+                        <li key={question.QuestionID} className="py-2 mb-1 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md text-sm" style={{minWidth:"400px", maxHeight: "200px"}}>
                             <div className="row-span-1 flex items-inline">
                                 <div className={`${typeColor} text-center text-white text-sm rounded px-2 py-2`} style={{minWidth: "3vw", maxHeight:"40px"}}>
                                     {question.Type}
                                 </div>
-                                <div className={`flex items-center justify-between px-4 text-sm`}>
+                                <div className={`flex items-center justify-between px-4 text-xs`}>
                                     <span >{question.Question}</span>
                                 </div>
                             </div>

@@ -12,11 +12,10 @@ const MultipleChoice: React.FC<MultipleChoiceProps> = ({question, studentAnswer}
     return (
         <div className={`mt-2 text-gray-600 flex flex-col ${smalltext}`}>
             <div className="flex-grow">
-                {!studentAnswer && (
-                    <>
-                <div className="flex gap-2 pb-3 px-3">
+                <div className="flex gap-2 px-3">
                     <p><b>Category:</b> {question.Category}</p>
                 </div>
+                {!studentAnswer && (
                     <div className="flex items-center">
                         {question.Options?.map((option, index) => ( 
                             <div key={option} className={`gap-2 px-3`}>
@@ -24,7 +23,6 @@ const MultipleChoice: React.FC<MultipleChoiceProps> = ({question, studentAnswer}
                             </div>
                         ))}
                     </div>
-                    </>
                 )}
                 <div className="flex gap-2 pt-3 px-3">
                     <p><b>Answer:</b> {question.Answer}</p>

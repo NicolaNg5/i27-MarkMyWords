@@ -1,6 +1,5 @@
 // src/pages/assessment/[id].tsx
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion";
 import ShortAnswerQuestion from "@/components/ShortAnswerQuestion";
 import QuestionNavigation from "@/components/QuestionNavigation";
@@ -150,7 +149,7 @@ const StudentView: React.FC = () => {
               AnswerID: uuid(),
               QuestionID: questionId,
               Answer: answer,
-              StudentID: "e9831946-cefe-4162-b242-84e9d6b82eca",
+              StudentID: "f94f1e58-3cbf-413e-af4d-efcf88bb5ede",
               AssessmentID: id
             });
           } else {
@@ -178,7 +177,7 @@ const StudentView: React.FC = () => {
                   AnswerID: uuid(),
                   QuestionID: originalQuestion.QuestionID,
                   Answer: answerValue,
-                  StudentID: "e9831946-cefe-4162-b242-84e9d6b82eca",
+                  StudentID: "f94f1e58-3cbf-413e-af4d-efcf88bb5ede",
                   AssessmentID: id,
                 });
               });

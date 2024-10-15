@@ -36,10 +36,10 @@ config = {
 }
 
 safety_settings = [
-    {"category": HarmCategory.HARM_CATEGORY_HARASSMENT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_HATE_SPEECH, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
+    {"category": HarmCategory.HARM_CATEGORY_HARASSMENT, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_HATE_SPEECH, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, "threshold": HarmBlockThreshold.BLOCK_NONE},
 ]
 
 genai.configure(api_key=API_KEY)
@@ -66,12 +66,16 @@ def save_response(response_data, prompt_name):
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "MCQ"}
-    elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
+    elif prompt_name in ["10 True or False", "10 Agree or Disagree", "10 Correct or Incorrect"]:
         file_path = "questions/cards.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "HL"}
+    elif prompt_name =="8 Variety":
+        file_path = "questions/variety.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "VAR"}
+
 
     if file_path:
         try:
@@ -294,7 +298,7 @@ class AnalysisSchema(BaseModel):
 async def analyse_answers(assessment_id: str):
     # get assessment reading material
     reading_material = get_assessment_file_content(assessment_id)
-    reference_text = reading_material
+    reference_text = reading_material['file_content']
     print("Reading Material:", reference_text)
     # get assessment questions
     try:
@@ -322,15 +326,7 @@ async def analyse_answers(assessment_id: str):
         )
         print("adding answer:", new_answer)
         submitted_answers.append(new_answer)
-
     print("Submitted Answers:", submitted_answers)
-
-    # with open("uploads/DoctorGoldsmith.txt", "r", encoding="utf-8") as f:
-    #     reference_text = f.read()
-    # with open("demoQuestions.json", "r", encoding="utf-8") as f:
-    #     demo_questions = json.load(f)
-    # with open("stuAns.json", "r", encoding="utf-8") as f:
-    #         submitted_answers = json.load(f)
 
     #Group answers by student and assessment
     student_answers = {}
@@ -352,67 +348,47 @@ async def analyse_answers(assessment_id: str):
                 question = next((q for q in questions if q["QuestionID"] == answer.QuestionID), None)
                 if question:
                     analysis_prompt += "Question: " + question['Question'] + "\n"
-                    analysis_prompt += "Student Answer: " + answer.Answer + "\n"
-                    analysis_prompt += "Suggested Answer: " + question['Answer'] + "\n"
-            analysis_prompt += "Please provide the analysis as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"analysis\": \"<your analysis of the student's reading comprehension based on their answers>\"}"
+                    analysis_prompt += "Category: " + question['Category'] + "\n"
+                    if (question['Type'] == 'MCQ' or question['Type'] == 'FC'):
+                        analysis_prompt += "Correct Answer: " + question['Answer'] + "\n"
+                    else:
+                        analysis_prompt += "Suggested Answer: " + question['Answer'] + "\n"
+                    analysis_prompt += "Student's Given Answer: " + answer.Answer + "\n"
+            analysis_prompt += "Please provide an analysis of the given Questions and Student answers depending on the Reference text above. Also identify brief strengths and weaknesses with No yapping. They should be about the student's reading comprehension in general and not for this specific reading material. Finally provide a rating for the different categories of the questions out of ten for each of literal comprehension and inferential comprehension. Note that the suggested answers will indicate a reading comprehension level of 9 to 10 out of 10. Output the following as a JSON format that begins with \"{\" and end with \"}\" with the inside like this: {\"analysis\": \"<your analysis in PLAIN TEXT FORM of the student's reading comprehension based on their answers>\", \"strengths\": \"strength 1, strength 2,...\", \"weaknesses\": \"weakness 1, weakness 2,...\", \"literal_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\", \"inferential_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\"}"
+            print(f"Student: {student_id}")
 
-            analysis_text = ""
-            while not analysis_text:
+            analysis = ""
+            while not analysis.strip():
                 response = model.generate_content(contents=[analysis_prompt])
                 analysis = response.text
-                #print(analysis)
+                print(f"analysis: {repr(analysis)}")
 
-                try:
-                    #Extract analysis from JSON format
-                    analysis_json = json.loads(analysis)
-                    analysis_text = analysis_json.get("analysis")
-                    print(analysis_text + "\n")
-                except:
-                    analysis_text = ""
-
-            strength_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the strengths of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"strengths\": \"strength 1, strength 2,...\"}. No yapping and just provide brief strengths. They should be about the student's reading comprehension in general and not for this specific reading material."
-            weakness_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\nWhat are the weaknesses of this student based on the analysis? Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"weaknesses\": \"weakness 1, weakness 2,...\"}. No yapping and just provide brief weaknesses. They should be about the student's reading comprehension in general and not for this specific reading material."
-
-            #Extract strengths and weaknesses
+            analysis_text = ""
             strength_text = ""
-            while not strength_text:
-                strength_response = model.generate_content(contents=[strength_prompt])
-                strengths = strength_response.text
-                #print(strengths + "\n")
-                try:
-                    strength_json = json.loads(strengths)
-                    strength_text = strength_json.get("strengths")
-                    print(f"Strengths: {strength_text}\n")
-                except:
-                    strength_text = ""
-
             weakness_text = ""
-            while not weakness_text:
-                weakness_response = model.generate_content(contents=[weakness_prompt])
-                weaknesses = weakness_response.text
-                #print(weaknesses + "\n")
-                try:
-                    weakness_json = json.loads(weaknesses)
-                    weakness_text = weakness_json.get("weaknesses")
+            literal = 0
+            inferential = 0
+            try:
+                cleaned_analysis = analysis.split('```')[0].strip()
+                if "```json" in analysis:
+                    cleaned_analysis = analysis.split('```json')[1].split('```')[0].strip()
+                if cleaned_analysis:
+                    print(cleaned_analysis)
+                    analysis_json = json.loads(cleaned_analysis)
+                    print(analysis_json)
+                    analysis_text = analysis_json["analysis"]
+                    print(analysis_text + "\n")
+                    strength_text = analysis_json["strengths"]
+                    print(f"Strengths: {strength_text}\n")
+                    weakness_text = analysis_json["weaknesses"]
                     print(f"Weaknesses: {weakness_text}\n")
-                except:
-                    weakness_text = ""
-
-            rating_prompt = analysis_prompt + "\nStudent's answers analysis: " + analysis + "\n Identified strengths: " + strengths + "\n Identified weaknesses: " + weaknesses + "\nFrom these analyses of the student's performance, strengths, and weaknesses, please rate the student's literal and inferential comprehension based on the given answers. Give a rating out of ten for each of literal comprehension and inferential comprehension. Note that the suggested answers will indicate a reading comprehension level of 9 to 10 out of 10. Provide the output as PLAIN TEXT but in JSON format. Begin the output with \"{\" and end with \"}\" like this: {\"literal_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\", \"inferential_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\"}."
-            literal = ""
-            inferential = ""
-            while not literal and not inferential:
-                rating_response = model.generate_content(contents=[rating_prompt])
-                ratings = rating_response.text
-                #print(ratings + "\n")
-                try:
-                    rating_json = json.loads(ratings)
-                    literal = rating_json.get("literal_rating")
-                    inferential = rating_json.get("inferential_rating")
+                    literal = analysis_json["literal_rating"]
+                    inferential = analysis_json["inferential_rating"]
                     print(f"Literal rating: {literal}\nInferential rating: {inferential}\n")
-                except:
-                    literal = ""
-                    inferential = ""
+            except json.loads as e:
+                print("Error parsing json:", e)
+            except Exception as e:
+                print("Error getting analysis:", e)
             
             new_analysis = AnalysisSchema(
                 StudentID = student_id,
@@ -420,8 +396,8 @@ async def analyse_answers(assessment_id: str):
                 feedback = analysis_text,
                 strengths = strength_text,
                 weaknesses = weakness_text,
-                literal_rating = literal,
-                inferential_rating = inferential
+                literal_rating = int(literal),
+                inferential_rating = int(inferential)
             )
 
             analysis_results.append(new_analysis)

@@ -6,7 +6,7 @@ interface FlashCardProps {
 }
 
 const FlashCard: React.FC<FlashCardProps> = ({question, studentAnswer}) => {
-    const smalltext = question.Options?.reduce((total, str) => total + str.length, 0) as number > 50 ? "text-sm" : "text-md";
+    const smalltext = question.Answer!.length > 50 ? "text-sm" : "text-md";
 
     return (
         <div className={`mt-2 text-gray-600 ${smalltext}`}>
