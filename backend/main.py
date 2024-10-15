@@ -10,7 +10,6 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import json
 import os
-from datetime import date
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
@@ -30,17 +29,17 @@ with open("prompts.json", "r") as f:
     PROMPTS = json.load(f)
 
 config = {
-    "temperature": 0.9,
+    "temperature": 0.5,
     "top_k": 1,
     "top_p": 1,
     "max_output_tokens": 2048,
 }
 
 safety_settings = [
-    {"category": HarmCategory.HARM_CATEGORY_HARASSMENT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_HATE_SPEECH, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
-    {"category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, "threshold": HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE},
+    {"category": HarmCategory.HARM_CATEGORY_HARASSMENT, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_HATE_SPEECH, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, "threshold": HarmBlockThreshold.BLOCK_NONE},
+    {"category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, "threshold": HarmBlockThreshold.BLOCK_NONE},
 ]
 
 genai.configure(api_key=API_KEY)
@@ -67,12 +66,16 @@ def save_response(response_data, prompt_name):
     elif prompt_name == "10 Multiple Choices":
         file_path = "questions/multiChoices.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "MCQ"}
-    elif prompt_name in ["10 True/False", "10 Agree/Disagree", "10 Correct/Incorrect"]:
+    elif prompt_name in ["10 True or False", "10 Agree or Disagree", "10 Correct or Incorrect"]:
         file_path = "questions/cards.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "FC"}
     elif prompt_name == "10 Highlight":
         file_path = "questions/highlights.json"
         response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "HL"}
+    elif prompt_name =="8 Variety":
+        file_path = "questions/variety.json"
+        response_data = {"filename": response_data.get("file_name"), "questions": response_data.get("questions"), "category": "VAR"}
+
 
     if file_path:
         try:
@@ -85,7 +88,7 @@ def save_response(response_data, prompt_name):
 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(existing_data, f, indent=3)
-    
+
     return response_data
 
 uploaded_file = None
@@ -104,10 +107,10 @@ async def upload_file(request: Request):
     print("Backend - Receiving File Content...")
     try:
         body_text = (await request.body()).decode("utf-8")
-        file_name, file_content = body_text.split("\n", 1)  
+        file_name, file_content = body_text.split("\n", 1)
 
         uploaded_file = file_name
-        
+
         print("File Content:", file_content)
         print("File Name:", file_name)
 
@@ -115,7 +118,7 @@ async def upload_file(request: Request):
             return {"error": "No file content received"}
 
         file_path = os.path.join("uploads", file_name)
-        with open(file_path, "w", encoding="utf-8") as f: 
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(file_content)
         print(f"File saved to: {file_path}")
 
@@ -137,15 +140,15 @@ async def generate_response(prompt_key: str, assessmentId: str):
         )
         if selected_prompt is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="prompt not found")
-        
-        print("Retrieve file content from assessmentId..")        
+
+        print("Retrieve file content from assessmentId..")
         file_content =  get_assessment_file_content(assessmentId)["file_content"]
 
-        response = model.generate_content(contents=[file_content, selected_prompt["content"], 
+        response = model.generate_content(contents=[file_content, selected_prompt["content"],
         "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}"
         ])
-        print("Raw Response Text:", response.text) 
-        
+        print("Raw Response Text:", response.text)
+
         response_text = response.text
 
         response_data = {
@@ -154,13 +157,13 @@ async def generate_response(prompt_key: str, assessmentId: str):
             "file_name": uploaded_file,
         }
 
-        response_final = save_response(response_data, prompt_key) 
+        response_final = save_response(response_data, prompt_key)
 
         return {"response": response_final}
     except Exception as e:
         print("Backend - General Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.post("/save_questions", status_code=status.HTTP_201_CREATED)
 async def save_questions(request: Request):
     """ Saves the selected questions to a JSON file and then to the Supabase database. """
@@ -207,7 +210,7 @@ async def save_questions(request: Request):
     except Exception as e:
         print(f"Error saving questions: {e}")
         return {"error": f"An error occurred: {str(e)}"}
-    
+
 @app.post("/submit_quiz")
 async def submit_quiz(request: Request):
     try:
@@ -219,6 +222,192 @@ async def submit_quiz(request: Request):
     except Exception as e:
         print("Backend - General Error:", e)
         return {"error": f"An error occurred: {str(e)}"}
+
+@app.get("/quiz")
+async def get_quiz_questions():
+    """Endpoint to serve demoQus.json"""
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), "demoQuestions.json")
+        with open(file_path, "r", encoding="utf-8") as f:
+            questions = json.load(f)
+        return {"questions": questions}
+    except FileNotFoundError:
+        return {"error": "demoQus.json not found"}, 404
+    except Exception as e:
+        print("Error loading demo questions:", e)
+        return {"error": "Failed to load demo questions"}, 500
+
+
+@app.get("/reading_material")
+async def get_reading_material():
+    """Endpoint to serve DoctorGoldsmith.txt"""
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), "uploads", "DoctorGoldsmith.txt")
+        with open(file_path, "r", encoding="utf-8") as f:
+            text = f.read()
+        return {"text": text}
+    except FileNotFoundError:
+        return {"error": "File not found"}, 404
+    except Exception as e:
+        print("Error loading reference text:", e)
+        return {"error": "Failed to load reference text"}, 500
+
+class StudentAnswer(BaseModel):
+    AnswerID: str
+    QuestionID: str
+    Answer: str
+    StudentID: str
+    AssessmentID:str
+
+@app.post("/submit_answers")
+async def submit_answers(answers_data: List[StudentAnswer]):
+    try:
+        print("Answers Received:", answers_data)
+
+        # file_path = os.path.join(os.path.dirname(__file__), "stuAns.json")
+        # print("Saving answers to:", file_path)
+        # with open(file_path, "w", encoding="utf-8") as f:
+        #     json.dump(answers_data, f, indent=3)
+        for answer in answers_data:
+            # Check if the answer already exists
+            existing_answer = supabase.table("StudentAnswer").select("*").eq("AnswerID", answer.AnswerID).execute()
+            if existing_answer.data:
+                print(f"Answer '{answer.AnswerID}' already exists, skipping...")
+                continue
+            else:
+                # use endpoint to save answers to supabase
+                create_student_answer(answer)
+                print(f"Answer '{answer.AnswerID}' saved successfully!")
+                continue
+        return {"message": "Answers received successfully!"}
+
+    except Exception as e:
+        print(f"Error saving answers: {e}")
+        return {"error": f"An error occurred: {str(e)}"}
+
+class AnalysisSchema(BaseModel):
+    StudentID: str
+    AssessmentID: str
+    feedback: str
+    strengths: str
+    weaknesses: str
+    literal_rating: int
+    inferential_rating: int
+
+@app.post("/analyse_answers")
+async def analyse_answers(assessment_id: str):
+    # get assessment reading material
+    reading_material = get_assessment_file_content(assessment_id)
+    reference_text = reading_material['file_content']
+    print("Reading Material:", reference_text)
+    # get assessment questions
+    try:
+        result = get_assessment_questions(assessment_id)
+        questions = result.data
+        print("Questions:", questions)
+    except Exception as e:
+        print("Error getting questions:", e)
+        return {"error": "Failed to get questions"}
+    # get student answers
+    submitted_answers: List[StudentAnswer] = []
+    try:
+        result = get_studentanswer_assessmentid(assessment_id)
+        answers = result.data
+    except Exception as e:
+        print("Error getting student answers:", e)
+        return {"error": "Failed to get student answers"}
+    for answer in answers:
+        new_answer = StudentAnswer(
+            AnswerID = answer["AnswerID"],
+            QuestionID = answer["QuestionID"],
+            Answer = answer["Answer"],
+            StudentID = answer["StudentID"],
+            AssessmentID = answer["AssessmentID"]
+        )
+        print("adding answer:", new_answer)
+        submitted_answers.append(new_answer)
+    print("Submitted Answers:", submitted_answers)
+
+    #Group answers by student and assessment
+    student_answers = {}
+    for answer in submitted_answers:
+        student_id = answer.StudentID
+        assessment_id = answer.AssessmentID
+        if student_id not in student_answers:
+            student_answers[student_id] = {}
+        if assessment_id not in student_answers[student_id]:
+            student_answers[student_id][assessment_id] = []
+        student_answers[student_id][assessment_id].append(answer)
+
+    print("Analysing student answers...")
+    analysis_results: List[AnalysisSchema] = []
+    for student_id, assessments in student_answers.items():
+        for assessment_id, answers in assessments.items():
+            analysis_prompt = f"Reference Text: {reference_text}\n\n"
+            for answer in answers:
+                question = next((q for q in questions if q["QuestionID"] == answer.QuestionID), None)
+                if question:
+                    analysis_prompt += "Question: " + question['Question'] + "\n"
+                    analysis_prompt += "Category: " + question['Category'] + "\n"
+                    if (question['Type'] == 'MCQ' or question['Type'] == 'FC'):
+                        analysis_prompt += "Correct Answer: " + question['Answer'] + "\n"
+                    else:
+                        analysis_prompt += "Suggested Answer: " + question['Answer'] + "\n"
+                    analysis_prompt += "Student's Given Answer: " + answer.Answer + "\n"
+            analysis_prompt += "Please provide an analysis of the given Questions and Student answers depending on the Reference text above. Also identify brief strengths and weaknesses with No yapping. They should be about the student's reading comprehension in general and not for this specific reading material. Finally provide a rating for the different categories of the questions out of ten for each of literal comprehension and inferential comprehension. Note that the suggested answers will indicate a reading comprehension level of 9 to 10 out of 10. Output the following as a JSON format that begins with \"{\" and end with \"}\" with the inside like this: {\"analysis\": \"<your analysis in PLAIN TEXT FORM of the student's reading comprehension based on their answers>\", \"strengths\": \"strength 1, strength 2,...\", \"weaknesses\": \"weakness 1, weakness 2,...\", \"literal_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\", \"inferential_rating\": \"<Your rating out of 10. Just a number between 1 and 10>\"}"
+            print(f"Student: {student_id}")
+
+            analysis = ""
+            while not analysis.strip():
+                response = model.generate_content(contents=[analysis_prompt])
+                analysis = response.text
+                print(f"analysis: {repr(analysis)}")
+
+            analysis_text = ""
+            strength_text = ""
+            weakness_text = ""
+            literal = 0
+            inferential = 0
+            try:
+                cleaned_analysis = analysis.split('```')[0].strip()
+                if "```json" in analysis:
+                    cleaned_analysis = analysis.split('```json')[1].split('```')[0].strip()
+                if cleaned_analysis:
+                    print(cleaned_analysis)
+                    analysis_json = json.loads(cleaned_analysis)
+                    print(analysis_json)
+                    analysis_text = analysis_json["analysis"]
+                    print(analysis_text + "\n")
+                    strength_text = analysis_json["strengths"]
+                    print(f"Strengths: {strength_text}\n")
+                    weakness_text = analysis_json["weaknesses"]
+                    print(f"Weaknesses: {weakness_text}\n")
+                    literal = analysis_json["literal_rating"]
+                    inferential = analysis_json["inferential_rating"]
+                    print(f"Literal rating: {literal}\nInferential rating: {inferential}\n")
+            except json.loads as e:
+                print("Error parsing json:", e)
+            except Exception as e:
+                print("Error getting analysis:", e)
+            
+            new_analysis = AnalysisSchema(
+                StudentID = student_id,
+                AssessmentID = assessment_id,
+                feedback = analysis_text,
+                strengths = strength_text,
+                weaknesses = weakness_text,
+                literal_rating = int(literal),
+                inferential_rating = int(inferential)
+            )
+
+            analysis_results.append(new_analysis)
+
+    print("Analysis Results:")
+    for result in analysis_results:
+        create_analysis(result)
+        print(result, "\n")
+
+    return analysis_results
 
 #--------------------------------------------------------------------------------------#
 
@@ -257,6 +446,18 @@ def get_class(id:UUID):
     specificClass = supabase.table("Class").select("*").eq("ClassNumber",id).execute()
     return specificClass
 
+#Get all reading material
+@app.get("/readingmaterials")
+def get_reading_materials():
+    reading_materials = supabase.table("ReadingMaterial").select("*").execute()
+    return reading_materials
+
+#Get specfic reading material based on UUID
+@app.get("/readingmaterial/{id}")
+def get_reading_material(id:UUID):
+    reading_material = supabase.table("ReadingMaterial").select("*").eq("MaterialId",id).execute()
+    return reading_material
+
 #Get all assessments
 @app.get("/assessments")
 def get_assessments():
@@ -283,7 +484,7 @@ def get_question(id:UUID):
 
 #Get specific questions based on assessment id
 @app.get("/question/assessment/{id}")
-def get_question(id:UUID):
+def get_assessment_questions(id:UUID):
     question = supabase.table("Question").select("*").eq("AssessmentID",id).execute()
     return question
 
@@ -323,10 +524,22 @@ def get_answer_answerid(answerid:UUID):
     answer = supabase.table("StudentAnswer").select("*").eq("AnswerID",answerid).execute()
     return answer
 
+#Get answer based on student id and question id
+@app.get("/studentanswer/{questionid}")
+def get_studentanswer_questionid(questionid:UUID):
+    answer = supabase.table("StudentAnswer").select("*").eq("QuestionID",questionid).execute()
+    return answer
+
+#Get answer based on assessmentid
+@app.get("/studentanswer/assessment/{assessmentid}")
+def get_studentanswer_assessmentid(assessmentid:UUID):
+    answer = supabase.table("StudentAnswer").select("*").eq("AssessmentID",assessmentid).execute()
+    return answer
+
 #Get answer based on question id
 @app.get("/answerquesid/{questionid}")
 def get_answer_questionid(questionid:UUID):
-    answer = supabase.table("Question").select("Answer").eq("QuestionID",questionid).execute()
+    answer = supabase.table("Question").select("*").eq("QuestionID",questionid).execute()
     return answer
 
 #Get all results
@@ -347,6 +560,51 @@ def get_result_studentid(id:UUID):
     result = supabase.table("AssessmentResults").select("*").eq("StudentID",id).execute()
     return result
 
+#Get analysis based on assessment id
+@app.get("/analysis/{id}")
+def get_analysis_assessmentid(id:UUID):
+    analysis = supabase.table("Analysis").select("*").eq("AssessmentID",id).execute()
+    return analysis
+
+#Create analysis
+@app.post("/analysis/", status_code=status.HTTP_201_CREATED)
+def create_analysis(analysis: AnalysisSchema):
+    # Generate UUID for analysis id
+    analysis_id = str(uuid.uuid4())
+
+    # Prepare data
+    new_analysis = {
+        "AnalysisID": analysis_id,
+        "StudentID": analysis.StudentID,
+        "AssessmentID": analysis.AssessmentID,
+        "feedback": analysis.feedback,
+        "strengths": analysis.strengths,
+        "weaknesses": analysis.weaknesses,
+        "literal_rating": analysis.literal_rating,
+        "inferential_rating": analysis.inferential_rating
+    }
+
+    # Insert new analysis into Supabase
+    try:
+        result = supabase.table("Analysis").insert(new_analysis).execute()
+
+        # Check insertion
+        if result.data:
+            return {"message": "Analysis created successfully", "analysis": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create analysis")
+    except APIError as e:
+        if "foreign key constraint" in str(e).lower():
+            if "studentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Student with ID {analysis.StudentID} does not exist")
+            elif "assessmentid" in str(e).lower():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Assessment with ID {analysis.AssessmentID} does not exist")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+    return "Analysis created successfully"
 #Create student
 class StudentSchema(BaseModel):
     name: str
@@ -437,7 +695,7 @@ def update_assessment(assessment_id: str, title: Optional[str] = None, topic: Op
 
     if topic:
         updated_assessment["Topic"] = topic
-    
+
     if due_date:
         try:
             formatted_due_date = datetime.strptime(due_date, '%Y-%m-%d')
@@ -448,7 +706,7 @@ def update_assessment(assessment_id: str, title: Optional[str] = None, topic: Op
     print("updated_assessment:", updated_assessment)
 
     try:
-        if updated_assessment == {}: 
+        if updated_assessment == {}:
             raise HTTPException(status_code=status.HTTP_200_OK, detail="No fields to update")
         else:
             print("Updating assessment...")
@@ -470,7 +728,7 @@ def delete_assessment(assessment_id: str):
             raise HTTPException(status_code=404, detail="Assessment not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
 def get_assessment_file_content(assessment_id:str):
@@ -481,20 +739,20 @@ def get_assessment_file_content(assessment_id:str):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
         #retrieve file name from table
         reading_file_name = assessment.data[0]['ReadingFileName']
-        
+
         #creaate file path:
         file_path = os.path.join("uploads", reading_file_name)
-        
+
         #Check if the file exists
         if not os.path.exists(file_path):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
-        
+
         #Retrieve file content:
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
-        
+
         return {"file_content": file_content}
-    
+
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -539,25 +797,20 @@ def create_class():
             raise HTTPException(status_code=500, detail="Failed to create class")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 #Create StudentAnswer
-class StudentAnswerSchema(BaseModel):
-    question_id: str
-    student_id: str
-    answer: str
 @app.post("/student_answer/", status_code=status.HTTP_201_CREATED)
-def create_student_answer(student_answer: StudentAnswerSchema):
-    # Generate UUID for AnswerID
-    answer_id = str(uuid.uuid4())
-    
+def create_student_answer(student_answer: StudentAnswer):
+
     #Prepare data
     new_student_answer = {
-        "AnswerID": answer_id,
-        "QuestionID": student_answer.question_id,
-        "StudentID": student_answer.student_id,
-        "Answer": student_answer.answer
+        "AnswerID": student_answer.AnswerID,
+        "QuestionID": student_answer.QuestionID,
+        "StudentID": student_answer.StudentID,
+        "Answer": student_answer.Answer,
+        "AssessmentID": student_answer.AssessmentID
     }
-    
+
     try:
         # Insert new student answer into Supabase
         result = supabase.table("StudentAnswer").insert(new_student_answer).execute()
@@ -655,7 +908,7 @@ class QuestionType(str, Enum):
 class Category(str, Enum):
     LITERAL = "Literal"
     INFERENTIAL = "Inferential"
-    
+
 class QuestionSchema(BaseModel):
     AssessmentID: str
     Question: str

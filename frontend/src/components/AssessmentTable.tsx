@@ -30,7 +30,7 @@ const AssessmentTable: React.FC<AssessmentTableProps> = ({setIsModalOpen, setMod
         </tr>
       </thead>
       <tbody>
-        {assessments.map((assessment, index) => (
+        {assessments?.map((assessment, index) => (
           <tr key={assessment.Assessmentid}>
             <td className="px-4 text-black py-2 border">
               {index + 1}. {assessment.Title}

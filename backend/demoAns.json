@@ -1,0 +1,114 @@
+[
+    {
+        "id": "1",
+        "questionID": "1",
+        "studentID": "1",
+        "answer": "No, he was in distress due to lack of work and food.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "2",
+        "questionID": "2",
+        "studentID": "1",
+        "answer": "He promised to give her medicine for her husband.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "3",
+        "questionID": "3",
+        "studentID": "1",
+        "answer": "He was depressed and hungry.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "4",
+        "questionID": "4",
+        "studentID": "1",
+        "answer": "The power of kindness.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "5",
+        "questionID": "5",
+        "studentID": "1",
+        "answer": "True",
+        "assessmentID": "1"
+    },
+    {
+        "id": "6",
+        "questionID": "6",
+        "studentID": "1",
+        "answer": "False",
+        "assessmentID": "1"
+    },
+    {
+        "id": "7",
+        "questionID": "7",
+        "studentID": "1",
+        "answer": "True",
+        "assessmentID": "1"
+    },
+    {
+        "id": "8",
+        "questionID": "8",
+        "studentID": "1",
+        "answer": "He was sometimes called Doctor Goldsmith; for he had studied to be a physician.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "9",
+        "questionID": "1",
+        "studentID": "2",
+        "answer": "Yes, he was very ill and bedridden.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "10",
+        "questionID": "2",
+        "studentID": "2",
+        "answer": "He promised to send a doctor to examine her husband.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "11",
+        "questionID": "3",
+        "studentID": "2",
+        "answer": "He couldn't find his medicine.",
+        "assessmentID": "1"
+    },
+    {
+        "id": "12",
+        "questionID": "4",
+        "studentID": "2",
+        "answer": "The dangers of poverty. ",
+        "assessmentID": "1"
+    },
+    {
+        "id": "13",
+        "questionID": "5",
+        "studentID": "2",
+        "answer": "True",
+        "assessmentID": "1"
+    },
+    {
+        "id": "14",
+        "questionID": "6",
+        "studentID": "2",
+        "answer": "True",
+        "assessmentID": "1"
+    },
+    {
+        "id": "15",
+        "questionID": "7",
+        "studentID": "2",
+        "answer": "False",
+        "assessmentID": "1"
+    },
+    {
+        "id": "16",
+        "questionID": "8",
+        "studentID": "2",
+        "answer": "He was sometimes called Doctor Goldsmith; for he had studied to be a physician.",
+        "assessmentID": "1"
+    }
+]

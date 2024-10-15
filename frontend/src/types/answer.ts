@@ -3,4 +3,5 @@ export interface StudentAnswer {
   QuestionID: string;
   StudentID: string;
   Answer: string;
+  AssessmentID: string;
 }

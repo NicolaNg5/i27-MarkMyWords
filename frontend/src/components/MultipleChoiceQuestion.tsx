@@ -17,6 +17,7 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
   selectedAnswer,
   onAnswerSelect,
 }) => {
+  
   return (
     <div className="mb-8">
       <div className="mb-8 text-center">
@@ -30,18 +31,12 @@ const MultipleChoiceQuestion: React.FC<MultipleChoiceQuestionProps> = ({
             key={index}
             className="flex items-center space-x-3 cursor-pointer"
           >
-            <div
-              className={`w-6 h-6 border-2 flex items-center justify-center ${
-                selectedAnswer === option
-                  ? "bg-blue-500 border-blue-500"
-                  : "border-gray-300"
-              }`}
-              onClick={() => onAnswerSelect(option)}
-            >
-              {selectedAnswer === option && (
-                <span className="text-white">✓</span>
-              )}
-            </div>
+            <input
+              type="radio"
+              value={option}
+              checked={selectedAnswer === option}
+              onChange={()=> onAnswerSelect(option)}
+            />
             <span>{option}</span>
           </label>
         ))}
