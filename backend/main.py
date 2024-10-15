@@ -281,8 +281,7 @@ def get_question(id:UUID):
     question = supabase.table("Question").select("*").eq("QuestionID",id).execute()
     return question
 
-#Get specific questions based on assessment id b nicola
-# the id is assessment id
+#Get specific questions based on assessment id
 @app.get("/question/assessment/{id}")
 def get_question(id:UUID):
     question = supabase.table("Question").select("*").eq("AssessmentID",id).execute()
