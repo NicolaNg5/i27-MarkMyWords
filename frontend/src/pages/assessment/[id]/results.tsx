@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SwitchButton from '@/components/SwitchButton';
 import Dropdown from '@/components/DropdownMenu';
 import DifficultyArea from '@/components/DifficultyArea';
@@ -6,6 +6,9 @@ import ViewSelection from '@/components/ViewSelection';
 import ScoreDistribution from '@/components/ScoreDistribution';
 import Ranking from '@/components/Ranking';
 import { useRouter } from 'next/router';
+// import { Assessment } from "@/types/assessment";
+// import { Student } from "@/types/student";
+import PerformanceTrend from '@/components/PerformanceTrend';
 
 const AssessmentResults: React.FC = () => {
   const [isStudentView, setIsStudentView] = useState(true);
@@ -14,8 +17,46 @@ const AssessmentResults: React.FC = () => {
     'Performance Trend' | 'Area of Difficulty' | 'Score Distribution' | 'Class Ranking'
   >('Area of Difficulty');
 
+
   const router = useRouter();
-  const { assessmentid } = router.query;
+  const [id, setId] = useState<string>( router.query.id as string);
+  useEffect(() => {
+    if(router.isReady){
+      setId(router.query.id as string);
+    }
+  }, [router.isReady]);
+
+  useEffect(() => {
+    isStudentView ? setSelectedView('Area of Difficulty') : setSelectedView('Class Ranking');
+  }, [isStudentView]);
+
+
+  //to fetch real data
+  // const [assessment, setAssessment] = useState<Assessment>({} as Assessment);
+  // const [students, setStudents] = useState<Student[]>([])
+  // useEffect(() => {
+  //   const fetchAssessment= async () => {
+  //     try {
+  //       const res = await fetch(`/api/assessment/${id}`);
+  //       const data = await res.json();
+  //       setAssessment(data?.data[0] as Assessment);
+  //     } catch (error) {
+  //       setError("Error fetching assessment");
+  //     }
+  //   }
+
+  //   const fetchStudents = async () => {
+  //     try {
+  //       const res = await fetch("/api/students");
+  //       const data = await res.json();
+  //       setStudents(data?.data as Student[]); //filled with array response
+  //     } catch (error) {
+  //       setError("Error fetching students");
+  //     }
+  //   };
+  //   fetchAssessment();
+  //   fetchStudents();
+  // }, []);
 
   // Sample for student list
   const students = ['Student1', 'Student2', 'Student3'];
@@ -98,9 +139,17 @@ const AssessmentResults: React.FC = () => {
             ))}
           </div>
         ) : selectedView === 'Performance Trend' ? (
-          <div>
-            <h2>Performance Trend component will be displayed here.</h2>
-          </div>
+          <PerformanceTrend
+            data={[
+              { period: '1st Sem. 1st Year', gpa: 87 },
+              { period: '2nd Sem. 1st Year', gpa: 84 },
+              { period: '1st Sem. 2nd Year', gpa: 87 },
+              { period: '2nd Sem. 2nd Year', gpa: 81 },
+              { period: '1st Sem. 3rd Year', gpa: 75 },
+              { period: '2nd Sem. 3rd Year', gpa: 81 },
+              { period: '1st Sem. 4th Year', gpa: 84 },
+            ]}
+          />
         ) : null
       ) : selectedView === 'Score Distribution' ? (
         <ScoreDistribution
@@ -109,6 +158,12 @@ const AssessmentResults: React.FC = () => {
       ) : selectedView === 'Class Ranking' ? (
         <Ranking classRankings={classRankings} studentRankings={studentRankings} />
       ) : null}
+      <button
+        className="bg-gray-500 text-white p-2 mt-6 rounded hover:bg-gray-700"
+        onClick={() => window.history.back()}
+      >
+          Back
+      </button>
     </div>
   );
 };

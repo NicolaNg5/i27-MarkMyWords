@@ -6,6 +6,8 @@ import ShortAnswerQuestion from "@/components/ShortAnswerQuestion";
 import QuestionNavigation from "@/components/QuestionNavigation";
 import Timer from "@/components/Timer";
 import FlashcardQuestion from "@/components/FlashCardQuestion";
+import TextHighlight from "@/components/TextHighlight";
+
 import { Question, QuestionType } from "@/types/question";
 
 interface FlashcardAnswer {
@@ -62,6 +64,12 @@ const AssessmentPage: React.FC = () => {
           "Romeo attempts suicide upon hearing about Juliet's grief",
         ],
       },
+      {
+        QuestionID: "7",
+        Type: QuestionType.Highlighting, // New Highlighting Question
+        Question: "Highlight the most important part of the text below",
+        Options:["Romeo and Juliet is a tragedy written by William Shakespeare early in his career about two young star-crossed lovers whose deaths ultimately reconcile their feuding families. It was among Shakespeare's most popular plays during his lifetime and, along with Hamlet, is one of his most frequently performed plays. Today, the title characters are regarded as archetypal young lovers. Romeo and Juliet belongs to a tradition of tragic romances stretching back to antiquity. Its plot is based on an Italian tale translated into verse as The Tragical History of Romeus and Juliet by Arthur Brooke in 1562 and retold in prose in Palace of Pleasure by William Painter in 1567. Shakespeare borrowed heavily from both but expanded the plot by developing supporting characters, particularly Mercutio and Paris."]
+      }
     ];
 
     setQuestions(sampleQuestions);
@@ -91,6 +99,7 @@ const AssessmentPage: React.FC = () => {
   };
 
   const currentQuestionData = questions[currentQuestion - 1];
+  const content = currentQuestionData?.Options ?? []
   return (
     <div className="flex flex-col">
       <header className="p-4 flex justify-between items-center">
@@ -142,9 +151,22 @@ const AssessmentPage: React.FC = () => {
                       }
                     />
                   );
+                  case QuestionType.Highlighting:
+                  return (
+                    <TextHighlight
+                    questionNumber={currentQuestion}
+                    questionText={currentQuestionData.Question}
+                    content={content[0] ??  ""}
+                    highlightedText={(answers[currentQuestionData.QuestionID] as string) || ""}
+                    onHighlight={(highlightedText) =>
+                      handleAnswerChange(currentQuestionData.QuestionID, highlightedText)
+                      }
+                    />
+                  );
                 default:
                   return <div>Unsupported question type</div>;
               }
+
             })()}
         </div>
       </div>

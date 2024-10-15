@@ -13,7 +13,7 @@ import os
 from datetime import date
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 app = FastAPI()
 
 #Supabase Credentials:
@@ -181,34 +181,15 @@ async def save_questions(request: Request):
 
         # Save questions to Supabase database
         for question in questions:
-            options = [
-                question.get("option1", ""),
-                question.get("option2", ""),
-                question.get("option3", ""),
-                question.get("option4", ""),
-            ]
-            # Remove empty strings from the options list
-            options = [option for option in options if option]
-
-            new_question = {
-                "QuestionID": str(uuid.uuid4()),
-                "AssessmentID": question.get("assessmentID", None),
-                "Question": question["question"],
-                "Category": question.get("category", None),
-                "Type": question["type"],
-                "Options": options,
-                "Answer": question["answer"],
-            }
-
             # Check if the question already exists
-            existing_question = supabase.table("Question").select("*").eq("Question", new_question["Question"]).execute()
+            existing_question = supabase.table("Question").select("*").eq("Question", question["Question"]).execute()
             if existing_question.data:
-                print(f"Question '{new_question['Question']}' already exists, skipping...")
+                print(f"Question '{question['Question']}' already exists, skipping...")
                 continue
 
             # Insert new question into Supabase
             try:
-                result = supabase.table("Question").insert(new_question).execute()
+                result = supabase.table("Question").insert(question).execute()
                 if not result.data:
                     raise HTTPException(status_code=500, detail="Failed to create question")
             except APIError as e:
@@ -254,6 +235,15 @@ def get_students():
 def get_student(id:UUID):
     student = supabase.table("student").select("*").eq("Studentid",id).execute()
     return student
+
+@app.get("/class/students")
+def get_class_students(class_id:UUID):
+    try:
+        students = supabase.table("student").select("*").eq("class",class_id).execute()
+        print(students)
+        return students
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 #Get all classes
 @app.get("/classes")
@@ -438,6 +428,50 @@ def create_assessment(assessment: AssessmentSchema):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+@app.put("/update_assessment")
+def update_assessment(assessment_id: str, title: Optional[str] = None, topic: Optional[str] = None, due_date: Optional[str] = None):
+
+    updated_assessment = {}
+
+    if title:
+        updated_assessment["Title"] = title
+
+    if topic:
+        updated_assessment["Topic"] = topic
+    
+    if due_date:
+        try:
+            formatted_due_date = datetime.strptime(due_date, '%Y-%m-%d')
+            updated_assessment["dueDate"] = formatted_due_date.isoformat()
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format. Use 'YYYY-MM-DD' format")
+
+    print("updated_assessment:", updated_assessment)
+
+    try:
+        if updated_assessment == {}: 
+            raise HTTPException(status_code=status.HTTP_200_OK, detail="No fields to update")
+        else:
+            print("Updating assessment...")
+            result = supabase.table("Assessment").update(updated_assessment).eq("Assessmentid", assessment_id).execute()
+            if result.data:
+                return {"message": "Assessment updated successfully", "assessment": result.data[0]}
+            else:
+                raise HTTPException(status_code=500, detail="Failed to update assessment")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@app.delete("/delete_assessment")
+def delete_assessment(assessment_id: str):
+    try:
+        result = supabase.table("Assessment").delete().eq("Assessmentid", assessment_id).execute()
+        if result.data:
+            return {"message": "Assessment deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 #Retrieve file content from assessmentId
 @app.get("/assessment/{assessment_id}/file")
 def get_assessment_file_content(assessment_id:str):

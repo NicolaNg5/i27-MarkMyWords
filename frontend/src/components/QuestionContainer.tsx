@@ -1,13 +1,10 @@
 import { Question, QuestionType } from '@/types/question';
-import React, { useState } from 'react';
-import { BiArrowFromLeft, BiArrowFromRight, BiMinusBack, BiPlus } from 'react-icons/bi';
-import { BsFileMinus, BsPenFill, BsPlusLg } from 'react-icons/bs';
+import React, { use, useEffect, useState } from 'react';
 import { FaMinusCircle, FaPlusCircle } from 'react-icons/fa';
-import { PiPencilBold, PiPencilCircle } from 'react-icons/pi';
 import { RiPencilFill } from 'react-icons/ri';
-import EditQuestionModal from './modals/EditQuestionModal';
 import { TbTrashFilled } from 'react-icons/tb';
 import DeleteQuestionModal from './modals/DeleteQuestionModal';
+import QuestionDetailsForm from './modals/QuestionDetailsForm';
 export enum ContainerType {
     Candidates,
     Quiz,
@@ -35,7 +32,9 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
     };
 
     const onEdit = (question: Question) => {    
+        setQuestions((prev: any) => prev.map((q:Question) => q.QuestionID === question.QuestionID ? question : q));
     }
+
 
     return (
         <>
@@ -47,7 +46,8 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                             question.Type === "FC" ? "bg-green-400" : 
                             question.Type === "HL" ? "bg-yellow-400" : 
                             "bg-red-400";
-
+                        
+                        const smalltext = question.Options?.reduce((total, str) => total + str.length, 0) as number > 50 ? "text-sm" : "text-md";
                         return (
                             <li key={question.QuestionID} className="flex items-center justify-between py-2 px-4 border-b m-1 border-gray-100 rounded-md rounded-lg shadow-md">
                                 <div className="grid grid-row-2 flex-grow cursor-pointer max-h-xs" onClick={() => handleRowClick(question.QuestionID)}>
@@ -62,37 +62,49 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                                     {expanded === question.QuestionID && ( 
                                         <>
                                         {question.Type == QuestionType.MultipleChoice && (
-                                            <div className={`mt-2 text-gray-600` + (question.Options?.reduce((total, str) => total + str.length, 0) as number > 180) ? "test-sm" : "text-md"}>
-                                                <div className="flex items-center">
-                                                    {question.Options?.map((option, index) => ( 
-                                                        <div key={option} className={`gap-2 px-3`}>
-                                                            {index + 1}. {option}
-                                                        </div>
-                                                    ))}
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
                                                 </div>
-                                                <div className="gap-2 px-3">
-                                                    Answer: {question.Answer}
+                                                    <div className="flex items-center">
+                                                        {question.Options?.map((option, index) => ( 
+                                                            <div key={option} className={`gap-2 px-3`}>
+                                                                {index + 1}. {option}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                <div className="flex gap-2 pt-3 px-3">
+                                                    <p><b>Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.ShortAnswer && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Suggested Answer: {question.Answer}
+                                                    <p><b>Suggested Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.Highlighting && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Suggested Highlighted Answer: {question.Answer}
+                                                    <p><b>Suggested Highlighted Section:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {question.Type == QuestionType.FlashCard && ( 
-                                            <div className='mt-2 text-sm text-gray-600'>
+                                            <div className={`mt-2 text-gray-600 ${smalltext}`}>
+                                                <div className="flex gap-2 pb-3 px-3">
+                                                    <p><b>Category:</b> {question.Category}</p>
+                                                </div>
                                                 <div className="gap-2 px-3">
-                                                    Matching Answer: {question.Answer}
+                                                    <p><b>Answer:</b> {question.Answer}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -144,7 +156,7 @@ const QuestionContainer: React.FC<QuestionContainerProps> = ({ questions, type, 
                             </li>
                             )})}
                 </ul>
-                <EditQuestionModal isOpen={isModalOpen && modalId==1} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question}/>
+                <QuestionDetailsForm title="Edit Question" isOpen={isModalOpen && modalId==1} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question} onSubmit={onEdit}/>
                 <DeleteQuestionModal isOpen={isModalOpen && modalId==2} onClose={() => setIsModalOpen(false)} question={question ?? {} as Question} onSubmit={onDelete}/>
             </div>   
         </>         

@@ -27,7 +27,6 @@ const Dashboard: React.FC<DashboardProps> = ({basePath, students, assessment}: D
     const handleModal = (id: number) => {
         setIsModalOpen(true);
         setModalId(id);
-        
     };
 
     return (
