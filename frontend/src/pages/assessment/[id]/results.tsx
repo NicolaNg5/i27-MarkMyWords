@@ -181,7 +181,8 @@ const AssessmentResults: React.FC = () => {
   }, [questions]);
 
   useEffect(() => {
-    if (analysis.length != 0) {
+    if (analysis.length != 0 && Boolean(analysis as Analysis[])) {
+      console.log(analysis);
       setCurrentAnalysis(analysis?.find((a) => a.StudentID === selectedStudent) ?? {} as Analysis);
       setFeedback(analysis?.find((a) => a.StudentID === selectedStudent)?.feedback ?? "no feedback given");
     }
