@@ -22,7 +22,7 @@ const ShortAnswerQuestion: React.FC<ShortAnswerQuestionProps> = ({
       </div>
       <textarea
         className="w-full p-2 border rounded"
-        rows={4}
+        rows={6}
         value={answer}
         onChange={(e) => onAnswerChange(e.target.value)}
         placeholder="Type your answer here..."

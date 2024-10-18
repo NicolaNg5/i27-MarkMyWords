@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import { Assessment } from "@/types/assessment";
 import Loading from "@/components/Loading";
 import Modal from "@/components/modals/Modal";
+import { useRouter } from "next/router";
 
 interface FlashcardAnswer {
   true: string[];
@@ -30,7 +31,13 @@ const StudentView: React.FC = () => {
   const [answersSubmitted, setAnswersSubmitted] = useState(false);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(false);
-  const id = "c5f2d012-b6fc-4088-beb7-a73d7f5b3c7b"
+  const router = useRouter();
+  const [id, setId] = useState<string>( router.query.id as string);
+  useEffect(() => {
+    if(router.isReady){
+      setId(router.query.id as string);
+    }
+  }, [router.isReady]);
 
   const fetchAssessment= async () => {
     try {
@@ -76,8 +83,11 @@ const StudentView: React.FC = () => {
 
   // Convert questions
   useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
     let hasFormattedFlashcard = false;
-    const flashcardQuestions: Question[] = questions.filter(
+    const flashcardQuestions: Question[] = questions?.filter(
       (q) => {
         if(q.Type === QuestionType.FlashCard)
           if (hasFormattedFlashcard) {
@@ -89,7 +99,7 @@ const StudentView: React.FC = () => {
         }
     );
 
-    const formatted: Question[] = flashcardQuestions.map((q: Question) => {
+    const formatted: Question[] = flashcardQuestions?.map((q: Question) => {
         // Combine True/False questions into a single Flashcard question
         return {
           ...q,
@@ -107,7 +117,7 @@ const StudentView: React.FC = () => {
 
     
 
-    const newQuestions: Question[] = questions.filter( q => q.Type !== QuestionType.FlashCard);
+    const newQuestions: Question[] = questions?.filter( q => q.Type !== QuestionType.FlashCard);
 
     setFormattedQuestions([...newQuestions, ...formatted]);
   }, [questions, referenceText]);
