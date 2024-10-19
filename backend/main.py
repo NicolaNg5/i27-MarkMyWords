@@ -145,7 +145,7 @@ async def generate_response(prompt_key: str, assessmentId: str):
         file_content =  get_assessment_file_content(assessmentId)["file_content"]
 
         response = model.generate_content(contents=[file_content, selected_prompt["content"],
-        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}. Generate the output in the same language of the provided text material"
+        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}. Generate the output in the same language as the provided text material."
         ])
         print("Raw Response Text:", response.text)
 
