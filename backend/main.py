@@ -145,7 +145,7 @@ async def generate_response(prompt_key: str, assessmentId: str):
         file_content =  get_assessment_file_content(assessmentId)["file_content"]
 
         response = model.generate_content(contents=[file_content, selected_prompt["content"],
-        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}. Generate the output in the same language as the provided text material."
+        "Determine whether the following questions are literal (answer can be found directly in the text) or inferential (require thinking and reasoning beyond the text) based on their provided answers. Output the result as a key after 'answer', like this: {...'answer': 'answer 1', 'category': 'literal/inferential'}, {...'answer': 'answer 2', 'category': 'literal/inferential'}. Convert the question and answer into the same language as the reading material."
         ])
         print("Raw Response Text:", response.text)
 
@@ -739,7 +739,7 @@ def get_assessment_file_content(assessment_id:str):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
         #retrieve file name from table
         reading_file_name = assessment.data[0]['ReadingFileName']
-
+        
         #creaate file path:
         file_path = os.path.join("uploads", reading_file_name)
 
